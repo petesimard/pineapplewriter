@@ -1,0 +1,57 @@
+#ifndef AUDIORECORDER_H
+#define AUDIORECORDER_H
+
+#include <QObject>
+#include <QAudioInput>
+#include <QAudioDevice>
+#include <QAudioFormat>
+#include <QAudioSource>
+#include <QByteArray>
+#include <QTimer>
+#include <QIODevice>
+#include "fixedbufferdevice.h"
+#include "openaitranscriber.h"
+
+class AudioRecorder : public QObject
+{
+    Q_OBJECT
+
+public:
+    explicit AudioRecorder(QObject *parent = nullptr);
+    ~AudioRecorder();
+
+    bool isRecording() const;
+    void startRecording();
+    void stopRecording();
+    QByteArray getRecordedAudio() const;
+    void clearBuffer();
+    void setBufferSize(int sizeInBytes);
+    int getBufferSize() const;
+    void resetAudioState();
+
+    // OpenAI transcription methods
+    void setOpenAIApiKey(const QString &apiKey);
+    void startTranscription();
+    void stopTranscription();
+    bool isTranscribing() const;
+
+signals:
+    void recordingStarted();
+    void recordingStopped();
+    void recordingError(const QString &error);
+    void transcriptionReceived(const QString &text);
+    void transcriptionError(const QString &error);
+
+private:
+    QAudioInput *m_audioInput;
+    QAudioSource *m_audioSource;
+    FixedBufferDevice *m_circularBuffer;
+    QByteArray m_recordedAudio;
+    bool m_isRecording;
+    OpenAITranscriber *m_transcriber;
+
+    void setupAudioInput();
+    void captureSystemAudio();
+};
+
+#endif // AUDIORECORDER_H

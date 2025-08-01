@@ -10,8 +10,10 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QSettings>
+#include <QSpinBox>
 #include "hotkeywidget.h"
 #include "globalhotkeymanager.h"
+#include "audiorecorder.h"
 
 class MainWindow : public QMainWindow
 {
@@ -31,6 +33,14 @@ private slots:
     void loadApiKey();
     void onHotkeyChanged(const QString &hotkey);
     void onGlobalHotkeyPressed();
+    void onRecordingStarted();
+    void onRecordingStopped();
+    void onRecordingError(const QString &error);
+    void onBufferSizeChanged(int size);
+    void onTranscriptionReceived(const QString &text);
+    void onTranscriptionError(const QString &error);
+    void onStartTranscriptionClicked();
+    void onStopTranscriptionClicked();
 
 private:
     void setupUI();
@@ -51,8 +61,27 @@ private:
     QLabel *hotkeyLabel;
     HotkeyWidget *hotkeyWidget;
 
+    QGroupBox *recordingGroupBox;
+    QVBoxLayout *recordingLayout;
+    QLabel *recordingStatusLabel;
+    QLabel *recordingInfoLabel;
+    QHBoxLayout *bufferSizeLayout;
+    QLabel *bufferSizeLabel;
+    QSpinBox *bufferSizeSpinBox;
+
+    QGroupBox *transcriptionGroupBox;
+    QVBoxLayout *transcriptionLayout;
+    QLabel *transcriptionStatusLabel;
+    QLabel *transcriptionTextLabel;
+    QHBoxLayout *transcriptionButtonLayout;
+    QPushButton *startTranscriptionButton;
+    QPushButton *stopTranscriptionButton;
+
     // Global hotkey manager
     GlobalHotkeyManager *m_globalHotkeyManager;
+
+    // Audio recorder
+    AudioRecorder *m_audioRecorder;
 };
 
 #endif // MAINWINDOW_H

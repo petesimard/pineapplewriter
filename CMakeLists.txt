@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find Qt6 components
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui Multimedia Network WebSockets)
 
 # Set Qt6 specific properties
 set(CMAKE_AUTOMOC ON)
@@ -30,6 +30,14 @@ add_executable(SystemTrayApp
     src/hotkeywidget.h
     src/globalhotkeymanager.cpp
     src/globalhotkeymanager.h
+    src/audiorecorder.cpp
+    src/audiorecorder.h
+    src/circularbufferdevice.cpp
+    src/circularbufferdevice.h
+    src/fixedbufferdevice.cpp
+    src/fixedbufferdevice.h
+    src/openaitranscriber.cpp
+    src/openaitranscriber.h
     resources/resources.qrc
 )
 
@@ -38,6 +46,9 @@ target_link_libraries(SystemTrayApp
     Qt6::Core
     Qt6::Widgets
     Qt6::Gui
+    Qt6::Multimedia
+    Qt6::Network
+    Qt6::WebSockets
 )
 
 # Link QHotkey if available
