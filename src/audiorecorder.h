@@ -9,7 +9,7 @@
 #include <QByteArray>
 #include <QTimer>
 #include <QIODevice>
-#include "fixedbufferdevice.h"
+#include "audiobuffer.h"
 #include "openaitranscriber.h"
 
 class AudioRecorder : public QObject
@@ -45,7 +45,7 @@ signals:
 private:
     QAudioInput *m_audioInput;
     QAudioSource *m_audioSource;
-    FixedBufferDevice *m_circularBuffer;
+    AudioBuffer *m_audioBuffer;
     QByteArray m_recordedAudio;
     bool m_isRecording;
     OpenAITranscriber *m_transcriber;

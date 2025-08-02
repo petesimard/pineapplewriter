@@ -11,7 +11,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 
-class FixedBufferDevice;
+class AudioBuffer;
 
 class OpenAITranscriber : public QObject
 {
@@ -22,7 +22,7 @@ public:
     ~OpenAITranscriber();
 
     void setApiKey(const QString &apiKey);
-    void setCircularBuffer(FixedBufferDevice *buffer);
+    void setAudioBuffer(AudioBuffer *buffer);
     void startStreaming();
     void stopStreaming();
     bool isStreaming() const;
@@ -44,7 +44,7 @@ private:
     QWebSocket *m_webSocket;
     QThread *m_workerThread;
     QTimer *m_timer;
-    FixedBufferDevice *m_circularBuffer;
+    AudioBuffer *m_audioBuffer;
     QString m_apiKey;
     bool m_isStreaming;
     QMutex m_mutex;

@@ -1,5 +1,5 @@
 #include "openaitranscriber.h"
-#include "fixedbufferdevice.h"
+#include "audiobuffer.h"
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -11,7 +11,7 @@
 #include <QTimer>
 
 OpenAITranscriber::OpenAITranscriber(QObject *parent)
-    : QObject(parent), m_webSocket(nullptr), m_workerThread(nullptr), m_timer(nullptr), m_circularBuffer(nullptr), m_isStreaming(false), m_sessionId(""), m_currentItemId("")
+    : QObject(parent), m_webSocket(nullptr), m_workerThread(nullptr), m_timer(nullptr), m_audioBuffer(nullptr), m_isStreaming(false), m_sessionId(""), m_currentItemId("")
 {
     // Create timer for periodic audio processing
     m_timer = new QTimer(this);
@@ -29,9 +29,9 @@ void OpenAITranscriber::setApiKey(const QString &apiKey)
     m_apiKey = apiKey;
 }
 
-void OpenAITranscriber::setCircularBuffer(FixedBufferDevice *buffer)
+void OpenAITranscriber::setAudioBuffer(AudioBuffer *buffer)
 {
-    m_circularBuffer = buffer;
+    m_audioBuffer = buffer;
 }
 
 void OpenAITranscriber::startStreaming()
@@ -48,7 +48,7 @@ void OpenAITranscriber::startStreaming()
         return;
     }
 
-    if (!m_circularBuffer)
+    if (!m_audioBuffer)
     {
         emit transcriptionError("Circular buffer not set");
         return;
@@ -195,13 +195,13 @@ void OpenAITranscriber::onWebSocketTextMessageReceived(const QString &message)
 
 void OpenAITranscriber::onTimerTimeout()
 {
-    if (!m_isStreaming || !m_circularBuffer || !m_webSocket)
+    if (!m_isStreaming || !m_audioBuffer || !m_webSocket)
     {
         return;
     }
 
     // Get current audio data from circular buffer
-    QByteArray currentData = m_circularBuffer->readAndClear();
+    QByteArray currentData = m_audioBuffer->readAndClear();
 
     if (currentData.isEmpty())
     {

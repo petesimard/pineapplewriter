@@ -2,12 +2,9 @@
 #include <QDebug>
 
 CircularBufferDevice::CircularBufferDevice(QObject *parent)
-    : QIODevice(parent), m_bufferSize(1024 * 1024) // 1MB default
-      ,
-      m_writePosition(0), m_readPosition(0), m_totalBytesWritten(0)
+    : AudioBuffer(parent), m_writePosition(0), m_readPosition(0)
 {
     resizeBuffer(m_bufferSize);
-    open(QIODevice::ReadWrite);
 }
 
 CircularBufferDevice::~CircularBufferDevice()

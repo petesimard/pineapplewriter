@@ -2,10 +2,10 @@
 #include <QDebug>
 
 FixedBufferDevice::FixedBufferDevice(int bufferSize, QObject *parent)
-    : QIODevice(parent), m_bufferSize(bufferSize), m_writePosition(0), m_totalBytesWritten(0)
+    : AudioBuffer(parent), m_writePosition(0)
 {
+    m_bufferSize = bufferSize;
     resizeBuffer(bufferSize);
-    open(QIODevice::ReadWrite);
 }
 
 FixedBufferDevice::~FixedBufferDevice()

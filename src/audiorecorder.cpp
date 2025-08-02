@@ -10,17 +10,17 @@
 #include <QFile>
 #include <QUrl>
 #include <QThread>
-#include "circularbufferdevice.h"
+#include "fixedbufferdevice.h"
 #include "openaitranscriber.h"
 
 AudioRecorder::AudioRecorder(QObject *parent)
-    : QObject(parent), m_audioInput(nullptr), m_audioSource(nullptr), m_circularBuffer(nullptr), m_isRecording(false), m_transcriber(nullptr)
+    : QObject(parent), m_audioInput(nullptr), m_audioSource(nullptr), m_audioBuffer(nullptr), m_isRecording(false), m_transcriber(nullptr)
 {
     setupAudioInput();
 
     // Create OpenAI transcriber
     m_transcriber = new OpenAITranscriber(this);
-    m_transcriber->setCircularBuffer(m_circularBuffer);
+    m_transcriber->setAudioBuffer(m_audioBuffer);
 
     // Connect transcriber signals
     connect(m_transcriber, &OpenAITranscriber::transcriptionReceived,
@@ -50,10 +50,10 @@ AudioRecorder::~AudioRecorder()
         m_audioInput = nullptr;
     }
 
-    if (m_circularBuffer)
+    if (m_audioBuffer)
     {
-        delete m_circularBuffer;
-        m_circularBuffer = nullptr;
+        delete m_audioBuffer;
+        m_audioBuffer = nullptr;
     }
 
     if (m_transcriber)
@@ -65,7 +65,7 @@ AudioRecorder::~AudioRecorder()
 
 void AudioRecorder::setupAudioInput()
 {
-    m_circularBuffer = new FixedBufferDevice(5 * 1024 * 1024, this);
+    m_audioBuffer = new FixedBufferDevice(5 * 1024 * 1024, this);
 
     // Set up audio format
     QAudioFormat format;
@@ -116,7 +116,7 @@ void AudioRecorder::startRecording()
     clearBuffer();
 
     // Start recording to circular buffer
-    m_audioSource->start(m_circularBuffer);
+    m_audioSource->start(m_audioBuffer);
     m_isRecording = true;
 
     qDebug() << "Started audio recording to circular buffer";
@@ -154,25 +154,25 @@ QByteArray AudioRecorder::getRecordedAudio() const
 void AudioRecorder::clearBuffer()
 {
     m_recordedAudio.clear();
-    if (m_circularBuffer)
+    if (m_audioBuffer)
     {
-        m_circularBuffer->clear();
+        m_audioBuffer->clear();
     }
 }
 
 void AudioRecorder::setBufferSize(int sizeInBytes)
 {
-    if (m_circularBuffer)
+    if (m_audioBuffer)
     {
-        m_circularBuffer->setBufferSize(sizeInBytes);
+        m_audioBuffer->setBufferSize(sizeInBytes);
     }
 }
 
 int AudioRecorder::getBufferSize() const
 {
-    if (m_circularBuffer)
+    if (m_audioBuffer)
     {
-        return m_circularBuffer->getBufferSize();
+        return m_audioBuffer->getBufferSize();
     }
     return 0;
 }
@@ -180,9 +180,9 @@ int AudioRecorder::getBufferSize() const
 void AudioRecorder::captureSystemAudio()
 {
     // Get the recorded data from circular buffer
-    if (m_circularBuffer)
+    if (m_audioBuffer)
     {
-        m_recordedAudio = m_circularBuffer->getData();
+        m_recordedAudio = m_audioBuffer->getData();
         qDebug() << "Captured" << m_recordedAudio.size() << "bytes of audio data from circular buffer";
 
         // Save captured audio to file
@@ -212,9 +212,9 @@ void AudioRecorder::resetAudioState()
     }
 
     // Reset the circular buffer
-    if (m_circularBuffer)
+    if (m_audioBuffer)
     {
-        m_circularBuffer->clear();
+        m_audioBuffer->clear();
     }
 
     m_recordedAudio.clear();

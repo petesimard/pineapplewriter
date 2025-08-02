@@ -32,6 +32,8 @@ add_executable(SystemTrayApp
     src/globalhotkeymanager.h
     src/audiorecorder.cpp
     src/audiorecorder.h
+    src/audiobuffer.cpp
+    src/audiobuffer.h
     src/circularbufferdevice.cpp
     src/circularbufferdevice.h
     src/fixedbufferdevice.cpp
