@@ -234,6 +234,13 @@ void AudioRecorder::startTranscription()
 {
     if (m_transcriber)
     {
+        // Start audio recording first
+        if (!m_isRecording)
+        {
+            startRecording();
+        }
+
+        // Then start transcription
         m_transcriber->startStreaming();
     }
 }
@@ -242,7 +249,14 @@ void AudioRecorder::stopTranscription()
 {
     if (m_transcriber)
     {
+        // Stop transcription first
         m_transcriber->stopStreaming();
+
+        // Then stop audio recording
+        if (m_isRecording)
+        {
+            stopRecording();
+        }
     }
 }
 

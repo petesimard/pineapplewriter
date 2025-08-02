@@ -38,6 +38,8 @@ add_executable(SystemTrayApp
     src/fixedbufferdevice.h
     src/openaitranscriber.cpp
     src/openaitranscriber.h
+    src/keyboardsimulator.cpp
+    src/keyboardsimulator.h
     resources/resources.qrc
 )
 

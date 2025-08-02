@@ -261,7 +261,7 @@ QJsonObject OpenAITranscriber::createSessionUpdateMessage()
     turnDetection["type"] = "server_vad";
     turnDetection["threshold"] = 0.5;
     turnDetection["prefix_padding_ms"] = 300;
-    turnDetection["silence_duration_ms"] = 500;
+    turnDetection["silence_duration_ms"] = 60;
     session["turn_detection"] = turnDetection;
 
     QJsonObject inputAudioTranscription;

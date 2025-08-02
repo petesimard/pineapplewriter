@@ -6,14 +6,14 @@
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), m_globalHotkeyManager(new GlobalHotkeyManager(this)), m_audioRecorder(new AudioRecorder(this))
+    : QMainWindow(parent), m_globalHotkeyManager(new GlobalHotkeyManager(this)), m_audioRecorder(new AudioRecorder(this)), m_keyboardSimulator(new KeyboardSimulator())
 {
     setupUI();
     setupConnections();
     loadSettings();
 
     setWindowTitle("System Tray App");
-    setFixedSize(450, 500);
+    setFixedSize(450, 400);
     setWindowFlags(Qt::Window | Qt::WindowCloseButtonHint | Qt::WindowMinimizeButtonHint);
 }
 
@@ -47,37 +47,11 @@ void MainWindow::setupUI()
     hotkeyGroupBox = new QGroupBox("Global Hotkey", centralWidget);
     hotkeyLayout = new QVBoxLayout(hotkeyGroupBox);
 
-    hotkeyLabel = new QLabel("Click the button below and press your desired key combination:", hotkeyGroupBox);
+    hotkeyLabel = new QLabel("Click the button below and press your desired key combination to toggle transcription:", hotkeyGroupBox);
     hotkeyWidget = new HotkeyWidget(hotkeyGroupBox);
 
     hotkeyLayout->addWidget(hotkeyLabel);
     hotkeyLayout->addWidget(hotkeyWidget);
-
-    // Recording Status Group
-    recordingGroupBox = new QGroupBox("Audio Recording", centralWidget);
-    recordingLayout = new QVBoxLayout(recordingGroupBox);
-
-    recordingStatusLabel = new QLabel("Status: Not Recording", recordingGroupBox);
-    recordingStatusLabel->setStyleSheet("font-weight: bold; color: red;");
-
-    recordingInfoLabel = new QLabel("Press the hotkey to start/stop recording", recordingGroupBox);
-    recordingInfoLabel->setWordWrap(true);
-
-    // Buffer Size Control
-    bufferSizeLayout = new QHBoxLayout();
-    bufferSizeLabel = new QLabel("Buffer Size (MB):", recordingGroupBox);
-    bufferSizeSpinBox = new QSpinBox(recordingGroupBox);
-    bufferSizeSpinBox->setRange(1, 100);
-    bufferSizeSpinBox->setValue(5);
-    bufferSizeSpinBox->setSuffix(" MB");
-
-    bufferSizeLayout->addWidget(bufferSizeLabel);
-    bufferSizeLayout->addWidget(bufferSizeSpinBox);
-    bufferSizeLayout->addStretch();
-
-    recordingLayout->addWidget(recordingStatusLabel);
-    recordingLayout->addWidget(recordingInfoLabel);
-    recordingLayout->addLayout(bufferSizeLayout);
 
     // Transcription Group
     transcriptionGroupBox = new QGroupBox("Real-time Transcription", centralWidget);
@@ -107,7 +81,6 @@ void MainWindow::setupUI()
     // Add widgets to main layout
     mainLayout->addWidget(apiGroupBox);
     mainLayout->addWidget(hotkeyGroupBox);
-    mainLayout->addWidget(recordingGroupBox);
     mainLayout->addWidget(transcriptionGroupBox);
     mainLayout->addStretch();
 }
@@ -117,15 +90,6 @@ void MainWindow::setupConnections()
     connect(apiKeyEdit, &QLineEdit::textChanged, this, &MainWindow::saveApiKey);
     connect(hotkeyWidget, &HotkeyWidget::hotkeyChanged, this, &MainWindow::onHotkeyChanged);
     connect(m_globalHotkeyManager, &GlobalHotkeyManager::hotkeyPressed, this, &MainWindow::onGlobalHotkeyPressed);
-
-    // Connect audio recorder signals
-    connect(m_audioRecorder, &AudioRecorder::recordingStarted, this, &MainWindow::onRecordingStarted);
-    connect(m_audioRecorder, &AudioRecorder::recordingStopped, this, &MainWindow::onRecordingStopped);
-    connect(m_audioRecorder, &AudioRecorder::recordingError, this, &MainWindow::onRecordingError);
-
-    // Connect buffer size control
-    connect(bufferSizeSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
-            this, &MainWindow::onBufferSizeChanged);
 
     // Connect transcription signals
     connect(m_audioRecorder, &AudioRecorder::transcriptionReceived,
@@ -211,16 +175,26 @@ void MainWindow::onGlobalHotkeyPressed()
 {
     qDebug() << "Global hotkey pressed!";
 
-    // Toggle audio recording
-    if (m_audioRecorder->isRecording())
+    // Toggle transcription
+    if (m_audioRecorder->isTranscribing())
     {
-        qDebug() << "Stopping audio recording...";
-        m_audioRecorder->stopRecording();
+        qDebug() << "Stopping transcription...";
+        m_audioRecorder->stopTranscription();
+        onStopTranscriptionClicked();
     }
     else
     {
-        qDebug() << "Starting audio recording...";
-        m_audioRecorder->startRecording();
+        qDebug() << "Starting transcription...";
+        QString apiKey = apiKeyEdit->text().trimmed();
+        if (apiKey.isEmpty())
+        {
+            QMessageBox::warning(this, "API Key Required",
+                                 "Please enter your OpenAI API key before starting transcription.");
+            return;
+        }
+        m_audioRecorder->setOpenAIApiKey(apiKey);
+        m_audioRecorder->startTranscription();
+        onStartTranscriptionClicked();
     }
 
     // Show the window when hotkey is pressed
@@ -229,44 +203,24 @@ void MainWindow::onGlobalHotkeyPressed()
     activateWindow();
 }
 
-void MainWindow::onRecordingStarted()
-{
-    qDebug() << "Audio recording started";
-    recordingStatusLabel->setText("Status: Recording");
-    recordingStatusLabel->setStyleSheet("font-weight: bold; color: green;");
-    recordingInfoLabel->setText("Recording audio... Press hotkey again to stop");
-}
-
-void MainWindow::onRecordingStopped()
-{
-    qDebug() << "Audio recording stopped";
-    QByteArray audioData = m_audioRecorder->getRecordedAudio();
-    qDebug() << "Recorded audio size:" << audioData.size() << "bytes";
-
-    recordingStatusLabel->setText("Status: Not Recording");
-    recordingStatusLabel->setStyleSheet("font-weight: bold; color: red;");
-    recordingInfoLabel->setText(QString("Recording stopped. Captured %1 bytes of audio data. Press hotkey to start new recording.").arg(audioData.size()));
-}
-
-void MainWindow::onRecordingError(const QString &error)
-{
-    qWarning() << "Audio recording error:" << error;
-    QMessageBox::warning(this, "Recording Error",
-                         "Failed to record audio: " + error);
-}
-
-void MainWindow::onBufferSizeChanged(int size)
-{
-    // Convert MB to bytes
-    int sizeInBytes = size * 1024 * 1024;
-    m_audioRecorder->setBufferSize(sizeInBytes);
-    qDebug() << "Buffer size changed to" << size << "MB (" << sizeInBytes << "bytes)";
-}
-
 void MainWindow::onTranscriptionReceived(const QString &text)
 {
-    qDebug() << "Transcription received:" << text;
+    // /qDebug() << "Transcription received:" << text;
     transcriptionTextLabel->setText(text);
+
+    // Type the received text using keyboard simulation
+    if (m_keyboardSimulator && m_keyboardSimulator->isAvailable())
+    {
+        bool success = m_keyboardSimulator->typeText(text);
+        if (!success)
+        {
+            qWarning() << "Failed to type transcription";
+        }
+    }
+    else
+    {
+        qWarning() << "Keyboard simulator not available - cannot type transcription";
+    }
 }
 
 void MainWindow::onTranscriptionError(const QString &error)
@@ -288,6 +242,7 @@ void MainWindow::onStartTranscriptionClicked()
 
     m_audioRecorder->setOpenAIApiKey(apiKey);
     m_audioRecorder->startTranscription();
+    m_keyboardSimulator->onStreamingStarted();
 
     transcriptionStatusLabel->setText("Status: Transcribing");
     transcriptionStatusLabel->setStyleSheet("font-weight: bold; color: green;");
