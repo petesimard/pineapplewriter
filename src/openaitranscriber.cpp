@@ -264,6 +264,10 @@ QJsonObject OpenAITranscriber::createSessionUpdateMessage()
     turnDetection["silence_duration_ms"] = 60;
     session["turn_detection"] = turnDetection;
 
+    // QJsonObject noiseReduction;
+    // noiseReduction["type"] = "near_field";
+    // session["input_audio_noise_reduction"] = noiseReduction;
+
     QJsonObject inputAudioTranscription;
     inputAudioTranscription["model"] = "gpt-4o-transcribe";
 

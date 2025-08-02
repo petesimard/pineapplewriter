@@ -51,7 +51,7 @@ bool GlobalHotkeyManager::registerHotkey(const QString &hotkeyString)
     {
         m_currentHotkey = hotkeyString;
         m_isRegistered = true;
-        qDebug() << "Successfully registered global hotkey:" << hotkeyString;
+        // qDebug() << "Successfully registered global hotkey:" << hotkeyString;
         return true;
     }
     else

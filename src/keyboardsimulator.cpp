@@ -50,7 +50,7 @@ bool KeyboardSimulator::typeText(const QString &text)
 
     if (m_doesNeedSpace)
     {
-        arguments << " ";
+        arguments << "key" << "space";
     }
 
     arguments << "type" << text;
@@ -71,7 +71,7 @@ bool KeyboardSimulator::typeText(const QString &text)
         return false;
     }
 
-    m_doesNeedSpace = text.endsWith(".") || text.endsWith("!");
+    m_doesNeedSpace = text.endsWith(".") || text.endsWith("!") || text.endsWith("?");
 
     // qDebug() << "Successfully typed text using xdotool:" << text;
     return true;

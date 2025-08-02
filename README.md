@@ -5,6 +5,7 @@ A Qt6-based system tray application that provides a user interface for configuri
 ## Features
 
 - **System Tray Integration**: Runs in the system tray with right-click menu (Open/Quit)
+- **Recording Status Indicator**: Green circle overlay on system tray icon when recording is active
 - **ElevenLabs API Configuration**: Secure text input field for storing API keys
 - **Custom Hotkey Support**: Click-to-set hotkey functionality with visual feedback
 - **Settings Persistence**: Automatically saves and loads user preferences
@@ -66,14 +67,17 @@ The application will be installed to `/usr/local/bin/SystemTrayApp`.
 2. **Access the UI**: 
    - Left-click the tray icon to open the main window
    - Right-click for menu options (Open/Quit)
-3. **Configure ElevenLabs API**:
+3. **Recording Status**: 
+   - A green circle appears on the system tray icon when recording is active
+   - The tooltip changes to indicate recording status
+4. **Configure ElevenLabs API**:
    - Enter your ElevenLabs API key in the text field
    - The key is automatically saved and hidden for security
-4. **Set Custom Hotkey**:
+5. **Set Custom Hotkey**:
    - Click the "Click to set hotkey" button
    - Press your desired key combination (e.g., Ctrl+Shift+A)
    - The hotkey will be captured and displayed
-5. **Close the window**: The app continues running in the system tray
+6. **Close the window**: The app continues running in the system tray
 
 ## Project Structure
 

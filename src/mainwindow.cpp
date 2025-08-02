@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QDebug>
+#include <QStyle>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_globalHotkeyManager(new GlobalHotkeyManager(this)), m_audioRecorder(new AudioRecorder(this)), m_keyboardSimulator(new KeyboardSimulator())
@@ -11,8 +12,9 @@ MainWindow::MainWindow(QWidget *parent)
     setupUI();
     setupConnections();
     loadSettings();
+    setupSystemTray();
 
-    setWindowTitle("System Tray App");
+    setWindowTitle("Pineapple Writer");
     setFixedSize(450, 400);
     setWindowFlags(Qt::Window | Qt::WindowCloseButtonHint | Qt::WindowMinimizeButtonHint);
 }
@@ -111,32 +113,34 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::saveSettings()
 {
-    QSettings settings("SystemTrayApp", "SystemTrayApp");
+    QSettings settings("Pineapple Writer", "Pineapple Writer");
     settings.setValue("hotkey", hotkeyWidget->getHotkey());
 }
 
 void MainWindow::loadSettings()
 {
-    QSettings settings("SystemTrayApp", "SystemTrayApp");
+    QSettings settings("Pineapple Writer", "Pineapple Writer");
     QString hotkey = settings.value("hotkey", "").toString();
-    if (!hotkey.isEmpty())
+    if (hotkey.isEmpty())
     {
-        hotkeyWidget->setHotkey(hotkey);
-        registerGlobalHotkey(hotkey);
+        hotkey = "Ctrl+Alt+F";
     }
+
+    hotkeyWidget->setHotkey(hotkey);
+    registerGlobalHotkey(hotkey);
 
     loadApiKey();
 }
 
 void MainWindow::saveApiKey()
 {
-    QSettings settings("SystemTrayApp", "SystemTrayApp");
+    QSettings settings("Pineapple Writer", "Pineapple Writer");
     settings.setValue("apiKey", apiKeyEdit->text());
 }
 
 void MainWindow::loadApiKey()
 {
-    QSettings settings("SystemTrayApp", "SystemTrayApp");
+    QSettings settings("Pineapple Writer", "Pineapple Writer");
     QString apiKey = settings.value("apiKey", "").toString();
     if (!apiKey.isEmpty())
     {
@@ -196,16 +200,11 @@ void MainWindow::onGlobalHotkeyPressed()
         m_audioRecorder->startTranscription();
         onStartTranscriptionClicked();
     }
-
-    // Show the window when hotkey is pressed
-    show();
-    raise();
-    activateWindow();
 }
 
 void MainWindow::onTranscriptionReceived(const QString &text)
 {
-    // /qDebug() << "Transcription received:" << text;
+    qDebug() << "Transcription received:" << text;
     transcriptionTextLabel->setText(text);
 
     // Type the received text using keyboard simulation
@@ -249,6 +248,9 @@ void MainWindow::onStartTranscriptionClicked()
     startTranscriptionButton->setEnabled(false);
     stopTranscriptionButton->setEnabled(true);
     transcriptionTextLabel->setText("Starting transcription...");
+
+    // Update tray icon to show recording
+    updateTrayIcon(true);
 }
 
 void MainWindow::onStopTranscriptionClicked()
@@ -260,4 +262,83 @@ void MainWindow::onStopTranscriptionClicked()
     startTranscriptionButton->setEnabled(true);
     stopTranscriptionButton->setEnabled(false);
     transcriptionTextLabel->setText("Transcription stopped.");
+
+    // Update tray icon to show not recording
+    updateTrayIcon(false);
+}
+
+void MainWindow::setupSystemTray()
+{
+    // Create system tray icon
+    m_trayIcon = new QSystemTrayIcon(this);
+
+    // Load icon from resources
+    m_defaultIcon = QPixmap(":/appicon.png").scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    m_recordingIcon = createRecordingIcon();
+
+    // Set initial icon
+    m_trayIcon->setIcon(QIcon(m_defaultIcon));
+    m_trayIcon->setToolTip("Pineapple Writer");
+
+    // Create tray menu
+    m_trayMenu = new QMenu(this);
+    m_openAction = m_trayMenu->addAction("Open");
+    m_quitAction = m_trayMenu->addAction("Quit");
+
+    // Connect signals
+    connect(m_openAction, &QAction::triggered, this, &MainWindow::show);
+    connect(m_quitAction, &QAction::triggered, qApp, &QApplication::quit);
+    connect(m_trayIcon, &QSystemTrayIcon::activated, [this](QSystemTrayIcon::ActivationReason reason)
+            {
+        if (reason == QSystemTrayIcon::Trigger) {
+            show();
+            raise();
+            activateWindow();
+        } });
+
+    // Set the context menu on the tray icon
+    m_trayIcon->setContextMenu(m_trayMenu);
+
+    // Show tray icon
+    m_trayIcon->show();
+}
+
+void MainWindow::updateTrayIcon(bool isRecording)
+{
+    if (isRecording)
+    {
+        m_trayIcon->setIcon(QIcon(m_recordingIcon));
+        m_trayIcon->setToolTip("Pineapple Writer - Recording");
+    }
+    else
+    {
+        m_trayIcon->setIcon(QIcon(m_defaultIcon));
+        m_trayIcon->setToolTip("Pineapple Writer");
+    }
+}
+
+QPixmap MainWindow::createRecordingIcon()
+{
+    // Create a copy of the default icon
+    QPixmap icon = m_defaultIcon;
+
+    // Create a painter to draw on the icon
+    QPainter painter(&icon);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    // Draw a green circle in the bottom-right corner
+    QColor greenColor(0, 255, 0); // Bright green
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(greenColor);
+
+    // Calculate circle position and size
+    int circleSize = icon.width() / 2; // 1/2 of icon size
+    int margin = 2;
+    int x = icon.width() - circleSize - margin;
+    int y = icon.height() - circleSize - margin;
+
+    painter.drawEllipse(x, y, circleSize, circleSize);
+
+    painter.end();
+    return icon;
 }

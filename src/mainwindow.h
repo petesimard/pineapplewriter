@@ -11,6 +11,11 @@
 #include <QPushButton>
 #include <QSettings>
 #include <QSpinBox>
+#include <QSystemTrayIcon>
+#include <QMenu>
+#include <QAction>
+#include <QPainter>
+#include <QPixmap>
 #include "hotkeywidget.h"
 #include "globalhotkeymanager.h"
 #include "audiorecorder.h"
@@ -74,6 +79,18 @@ private:
 
     // Keyboard simulator
     KeyboardSimulator *m_keyboardSimulator;
+
+    // System tray
+    QSystemTrayIcon *m_trayIcon;
+    QMenu *m_trayMenu;
+    QAction *m_openAction;
+    QAction *m_quitAction;
+    QPixmap m_defaultIcon;
+    QPixmap m_recordingIcon;
+
+    void setupSystemTray();
+    void updateTrayIcon(bool isRecording);
+    QPixmap createRecordingIcon();
 };
 
 #endif // MAINWINDOW_H
