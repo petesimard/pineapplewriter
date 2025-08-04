@@ -7,19 +7,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Find Qt6 components
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui Multimedia Network WebSockets)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(X11 REQUIRED x11)
+
 # Set Qt6 specific properties
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 # Try to find QHotkey, but make it optional
-find_package(QHotkey QUIET)
-if(QHotkey_FOUND)
-    add_definitions(-DUSE_QHOTKEY)
-    message(STATUS "QHotkey found - global hotkeys will be enabled")
-else()
-    message(STATUS "QHotkey not found - global hotkeys will be disabled")
-endif()
+find_package(QHotkey REQUIRED)
+
 
 # Create executable
 add_executable(SystemTrayApp
@@ -42,6 +40,10 @@ add_executable(SystemTrayApp
     src/openaitranscriber.h
     src/keyboardsimulator.cpp
     src/keyboardsimulator.h
+    src/postprocess.cpp
+    src/postprocess.h
+    src/pushtotalk.cpp
+    src/pushtotalk.h
     resources/resources.qrc
 )
 
@@ -53,12 +55,9 @@ target_link_libraries(SystemTrayApp
     Qt6::Multimedia
     Qt6::Network
     Qt6::WebSockets
+    ${X11_LIBRARIES}
 )
-
-# Link QHotkey if available
-if(QHotkey_FOUND)
-    target_link_libraries(SystemTrayApp qhotkey)
-endif()
+target_link_libraries(SystemTrayApp qhotkey)
 
 # Set output directory
 set_target_properties(SystemTrayApp PROPERTIES

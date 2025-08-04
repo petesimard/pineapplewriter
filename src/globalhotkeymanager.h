@@ -3,10 +3,10 @@
 
 #include <QObject>
 #include <QKeySequence>
-
-#ifdef USE_QHOTKEY
+#include <QTimer>
 #include <QHotkey>
-#endif
+
+class PushToTalk;
 
 class GlobalHotkeyManager : public QObject
 {
@@ -21,20 +21,30 @@ public:
     bool isRegistered() const;
     QString getCurrentHotkey() const;
 
+    enum InputMethod
+    {
+        Toggle,
+        PTT
+    };
+
+    InputMethod inputMethod = InputMethod::Toggle;
+
 signals:
-    void hotkeyPressed();
+    void
+    hotkeyPressed();
+    void pttStateChanged(bool isActive);
 
 private slots:
     void onHotkeyPressed();
+    void checkPttState();
 
 private:
-#ifdef USE_QHOTKEY
     QHotkey *m_hotkey;
-#else
-    void *m_hotkey; // Dummy pointer when QHotkey is not available
-#endif
     QString m_currentHotkey;
     bool m_isRegistered;
+    PushToTalk *m_pushToTalk;
+    bool m_isPttActive = false;
+    QTimer *m_pttStateTimer;
 
     bool parseHotkeyString(const QString &hotkeyString, QKeySequence &sequence);
 };

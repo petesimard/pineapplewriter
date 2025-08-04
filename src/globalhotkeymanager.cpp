@@ -1,19 +1,21 @@
 #include "globalhotkeymanager.h"
 #include <QDebug>
 #include <QApplication>
+#include "pushtotalk.h"
 
+// GlobalHotkeyManager implementation
 GlobalHotkeyManager::GlobalHotkeyManager(QObject *parent)
-    : QObject(parent)
-#ifdef USE_QHOTKEY
-      ,
-      m_hotkey(nullptr)
-#else
-      ,
-      m_hotkey(nullptr)
-#endif
-      ,
+    : QObject(parent),
+      m_hotkey(nullptr),
       m_isRegistered(false)
 {
+    m_pushToTalk = new PushToTalk();
+    m_pushToTalk->setCodeCode(Alt_R);
+
+    // Initialize timer to check PushToTalk state
+    m_pttStateTimer = new QTimer(this);
+    connect(m_pttStateTimer, &QTimer::timeout, this, &GlobalHotkeyManager::checkPttState);
+    m_pttStateTimer->start(100); // Check every 100ms
 }
 
 GlobalHotkeyManager::~GlobalHotkeyManager()
@@ -31,7 +33,6 @@ bool GlobalHotkeyManager::registerHotkey(const QString &hotkeyString)
         return false;
     }
 
-#ifdef USE_QHOTKEY
     // Parse the hotkey string
     QKeySequence sequence;
     if (!parseHotkeyString(hotkeyString, sequence))
@@ -61,25 +62,15 @@ bool GlobalHotkeyManager::registerHotkey(const QString &hotkeyString)
         m_hotkey = nullptr;
         return false;
     }
-#else
-    // Fallback implementation - just store the hotkey string
-    m_currentHotkey = hotkeyString;
-    m_isRegistered = true;
-    qDebug() << "QHotkey not available - hotkey stored but not registered globally:" << hotkeyString;
-    qDebug() << "To enable global hotkeys, install QHotkey library";
-    return true;
-#endif
 }
 
 bool GlobalHotkeyManager::unregisterHotkey()
 {
-#ifdef USE_QHOTKEY
     if (m_hotkey)
     {
         delete m_hotkey;
         m_hotkey = nullptr;
     }
-#endif
 
     m_currentHotkey.clear();
     m_isRegistered = false;
@@ -88,11 +79,7 @@ bool GlobalHotkeyManager::unregisterHotkey()
 
 bool GlobalHotkeyManager::isRegistered() const
 {
-#ifdef USE_QHOTKEY
     return m_isRegistered && m_hotkey && m_hotkey->isRegistered();
-#else
-    return m_isRegistered;
-#endif
 }
 
 QString GlobalHotkeyManager::getCurrentHotkey() const
@@ -102,7 +89,8 @@ QString GlobalHotkeyManager::getCurrentHotkey() const
 
 void GlobalHotkeyManager::onHotkeyPressed()
 {
-    emit hotkeyPressed();
+    if (inputMethod == InputMethod::Toggle)
+        emit hotkeyPressed();
 }
 
 bool GlobalHotkeyManager::parseHotkeyString(const QString &hotkeyString, QKeySequence &sequence)
@@ -166,4 +154,17 @@ bool GlobalHotkeyManager::parseHotkeyString(const QString &hotkeyString, QKeySeq
     }
 
     return !sequence.isEmpty();
+}
+
+void GlobalHotkeyManager::checkPttState()
+{
+    if (m_pushToTalk)
+    {
+        bool currentPttState = m_pushToTalk->m_isActive;
+        if (currentPttState != m_isPttActive)
+        {
+            m_isPttActive = currentPttState;
+            emit pttStateChanged(m_isPttActive);
+        }
+    }
 }
