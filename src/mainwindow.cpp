@@ -55,35 +55,9 @@ void MainWindow::setupUI()
     hotkeyLayout->addWidget(hotkeyLabel);
     hotkeyLayout->addWidget(hotkeyWidget);
 
-    // Transcription Group
-    transcriptionGroupBox = new QGroupBox("Real-time Transcription", centralWidget);
-    transcriptionLayout = new QVBoxLayout(transcriptionGroupBox);
-
-    transcriptionStatusLabel = new QLabel("Status: Not Transcribing", transcriptionGroupBox);
-    transcriptionStatusLabel->setStyleSheet("font-weight: bold; color: red;");
-
-    transcriptionTextLabel = new QLabel("Transcription will appear here...", transcriptionGroupBox);
-    transcriptionTextLabel->setWordWrap(true);
-    transcriptionTextLabel->setMinimumHeight(60);
-    transcriptionTextLabel->setStyleSheet("border: 1px solid #ccc; padding: 5px; background-color: #f9f9f9;");
-
-    transcriptionButtonLayout = new QHBoxLayout();
-    startTranscriptionButton = new QPushButton("Start Transcription", transcriptionGroupBox);
-    stopTranscriptionButton = new QPushButton("Stop Transcription", transcriptionGroupBox);
-    stopTranscriptionButton->setEnabled(false);
-
-    transcriptionButtonLayout->addWidget(startTranscriptionButton);
-    transcriptionButtonLayout->addWidget(stopTranscriptionButton);
-    transcriptionButtonLayout->addStretch();
-
-    transcriptionLayout->addWidget(transcriptionStatusLabel);
-    transcriptionLayout->addWidget(transcriptionTextLabel);
-    transcriptionLayout->addLayout(transcriptionButtonLayout);
-
     // Add widgets to main layout
     mainLayout->addWidget(apiGroupBox);
     mainLayout->addWidget(hotkeyGroupBox);
-    mainLayout->addWidget(transcriptionGroupBox);
     mainLayout->addStretch();
 }
 
@@ -92,16 +66,27 @@ void MainWindow::setupConnections()
     connect(apiKeyEdit, &QLineEdit::textChanged, this, &MainWindow::saveApiKey);
     connect(hotkeyWidget, &HotkeyWidget::hotkeyChanged, this, &MainWindow::onHotkeyChanged);
     connect(m_globalHotkeyManager, &GlobalHotkeyManager::hotkeyPressed, this, &MainWindow::onGlobalHotkeyPressed);
+    connect(m_globalHotkeyManager, &GlobalHotkeyManager::pttStateChanged, this, &MainWindow::onPttStateChanged);
 
     // Connect transcription signals
     connect(m_audioRecorder, &AudioRecorder::transcriptionReceived,
             this, &MainWindow::onTranscriptionReceived);
     connect(m_audioRecorder, &AudioRecorder::transcriptionError,
             this, &MainWindow::onTranscriptionError);
-    connect(startTranscriptionButton, &QPushButton::clicked,
-            this, &MainWindow::onStartTranscriptionClicked);
-    connect(stopTranscriptionButton, &QPushButton::clicked,
-            this, &MainWindow::onStopTranscriptionClicked);
+}
+
+void MainWindow::onPttStateChanged(bool isActive)
+{
+    qDebug() << "PushToTalk state changed to:" << (isActive ? "Active" : "Inactive");
+
+    if (isActive)
+    {
+        startTranscription();
+    }
+    else
+    {
+        stopTranscription();
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -183,8 +168,7 @@ void MainWindow::onGlobalHotkeyPressed()
     if (m_audioRecorder->isTranscribing())
     {
         qDebug() << "Stopping transcription...";
-        m_audioRecorder->stopTranscription();
-        onStopTranscriptionClicked();
+        stopTranscription();
     }
     else
     {
@@ -196,16 +180,14 @@ void MainWindow::onGlobalHotkeyPressed()
                                  "Please enter your OpenAI API key before starting transcription.");
             return;
         }
-        m_audioRecorder->setOpenAIApiKey(apiKey);
-        m_audioRecorder->startTranscription();
-        onStartTranscriptionClicked();
+
+        startTranscription();
     }
 }
 
 void MainWindow::onTranscriptionReceived(const QString &text)
 {
     qDebug() << "Transcription received:" << text;
-    transcriptionTextLabel->setText(text);
 
     // Type the received text using keyboard simulation
     if (m_keyboardSimulator && m_keyboardSimulator->isAvailable())
@@ -229,7 +211,7 @@ void MainWindow::onTranscriptionError(const QString &error)
                          "Transcription error: " + error);
 }
 
-void MainWindow::onStartTranscriptionClicked()
+void MainWindow::startTranscription()
 {
     QString apiKey = apiKeyEdit->text().trimmed();
     if (apiKey.isEmpty())
@@ -243,27 +225,13 @@ void MainWindow::onStartTranscriptionClicked()
     m_audioRecorder->startTranscription();
     m_keyboardSimulator->onStreamingStarted();
 
-    transcriptionStatusLabel->setText("Status: Transcribing");
-    transcriptionStatusLabel->setStyleSheet("font-weight: bold; color: green;");
-    startTranscriptionButton->setEnabled(false);
-    stopTranscriptionButton->setEnabled(true);
-    transcriptionTextLabel->setText("Starting transcription...");
-
     // Update tray icon to show recording
     updateTrayIcon(true);
 }
 
-void MainWindow::onStopTranscriptionClicked()
+void MainWindow::stopTranscription()
 {
     m_audioRecorder->stopTranscription();
-
-    transcriptionStatusLabel->setText("Status: Not Transcribing");
-    transcriptionStatusLabel->setStyleSheet("font-weight: bold; color: red;");
-    startTranscriptionButton->setEnabled(true);
-    stopTranscriptionButton->setEnabled(false);
-    transcriptionTextLabel->setText("Transcription stopped.");
-
-    // Update tray icon to show not recording
     updateTrayIcon(false);
 }
 

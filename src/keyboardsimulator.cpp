@@ -73,6 +73,6 @@ bool KeyboardSimulator::typeText(const QString &text)
 
     m_doesNeedSpace = text.endsWith(".") || text.endsWith("!") || text.endsWith("?");
 
-    // qDebug() << "Successfully typed text using xdotool:" << text;
+    qDebug() << "Successfully typed text using xdotool:" << text;
     return true;
 }

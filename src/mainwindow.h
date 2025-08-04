@@ -41,8 +41,9 @@ private slots:
     void onGlobalHotkeyPressed();
     void onTranscriptionReceived(const QString &text);
     void onTranscriptionError(const QString &error);
-    void onStartTranscriptionClicked();
-    void onStopTranscriptionClicked();
+    void startTranscription();
+    void stopTranscription();
+    void onPttStateChanged(bool isActive);
 
 private:
     void setupUI();
@@ -62,14 +63,6 @@ private:
     QVBoxLayout *hotkeyLayout;
     QLabel *hotkeyLabel;
     HotkeyWidget *hotkeyWidget;
-
-    QGroupBox *transcriptionGroupBox;
-    QVBoxLayout *transcriptionLayout;
-    QLabel *transcriptionStatusLabel;
-    QLabel *transcriptionTextLabel;
-    QHBoxLayout *transcriptionButtonLayout;
-    QPushButton *startTranscriptionButton;
-    QPushButton *stopTranscriptionButton;
 
     // Global hotkey manager
     GlobalHotkeyManager *m_globalHotkeyManager;
