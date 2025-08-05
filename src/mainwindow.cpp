@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     setWindowTitle("Pineapple Writer");
 
-    setFixedSize(470, 345);
+    setFixedSize(500, 450);
     setWindowFlags(Qt::Window | Qt::WindowCloseButtonHint | Qt::WindowMinimizeButtonHint);
     setWindowIcon(QIcon(":/appicon.png"));
 }
@@ -66,8 +66,25 @@ void MainWindow::setupUI()
     mainLayout->setSpacing(20);
     mainLayout->setContentsMargins(20, 20, 20, 20);
 
+    // Create tab widget
+    tabWidget = new QTabWidget(centralWidget);
+    mainLayout->addWidget(tabWidget);
+
+    // Setup tabs
+    setupSetupTab();
+    setupAudioTab();
+    setupAdvancedTab();
+}
+
+void MainWindow::setupSetupTab()
+{
+    setupTab = new QWidget();
+    setupLayout = new QVBoxLayout(setupTab);
+    setupLayout->setSpacing(20);
+    setupLayout->setContentsMargins(20, 20, 20, 20);
+
     // OpenAI API Key Group
-    apiGroupBox = new QGroupBox("OpenAI API Key", centralWidget);
+    apiGroupBox = new QGroupBox("OpenAI API Key", setupTab);
     apiLayout = new QVBoxLayout(apiGroupBox);
 
     apiKeyLayout = new QHBoxLayout();
@@ -90,7 +107,7 @@ void MainWindow::setupUI()
     apiLayout->addWidget(apiKeyLink);
 
     // Input Method Group
-    inputMethodGroupBox = new QGroupBox("Input Method", centralWidget);
+    inputMethodGroupBox = new QGroupBox("Input Method", setupTab);
     inputMethodLayout = new QVBoxLayout(inputMethodGroupBox);
 
     // Radio buttons for input method
@@ -104,7 +121,7 @@ void MainWindow::setupUI()
     inputMethodLayout->addWidget(toggleModeRadio);
     inputMethodLayout->addWidget(pttModeRadio);
 
-    pttGroupBox = new QGroupBox("Push-to-Talk", centralWidget);
+    pttGroupBox = new QGroupBox("Push-to-Talk", setupTab);
     auto pttLayout = new QVBoxLayout(pttGroupBox);
 
     // PTT Key Selection
@@ -132,7 +149,7 @@ void MainWindow::setupUI()
     pttLayout->addLayout(pttKeyLayout);
 
     // Hotkey Group
-    hotkeyGroupBox = new QGroupBox("Global Hotkey", centralWidget);
+    hotkeyGroupBox = new QGroupBox("Global Hotkey", setupTab);
     hotkeyLayout = new QVBoxLayout(hotkeyGroupBox);
 
     hotkeyLabel = new QLabel("Press the button below and press your desired key combination:", hotkeyGroupBox);
@@ -141,12 +158,123 @@ void MainWindow::setupUI()
     hotkeyLayout->addWidget(hotkeyLabel);
     hotkeyLayout->addWidget(hotkeyWidget);
 
-    // Add widgets to main layout
-    mainLayout->addWidget(apiGroupBox);
-    mainLayout->addWidget(inputMethodGroupBox);
-    mainLayout->addWidget(hotkeyGroupBox);
-    mainLayout->addWidget(pttGroupBox);
-    mainLayout->addStretch();
+    // Add widgets to setup layout
+    setupLayout->addWidget(apiGroupBox);
+    setupLayout->addWidget(inputMethodGroupBox);
+    setupLayout->addWidget(hotkeyGroupBox);
+    setupLayout->addWidget(pttGroupBox);
+    setupLayout->addStretch();
+
+    // Add setup tab to tab widget
+    tabWidget->addTab(setupTab, "Setup");
+}
+
+void MainWindow::setupAudioTab()
+{
+    audioTab = new QWidget();
+    audioLayout = new QVBoxLayout(audioTab);
+    audioLayout->setSpacing(20);
+    audioLayout->setContentsMargins(20, 20, 20, 20);
+
+    // Volume Group
+    volumeGroupBox = new QGroupBox("Recording Volume", audioTab);
+    volumeLayout = new QVBoxLayout(volumeGroupBox);
+
+    volumeLabel = new QLabel("Volume Level:", volumeGroupBox);
+    volumeSlider = new QSlider(Qt::Horizontal, volumeGroupBox);
+    volumeSlider->setRange(0, 100);
+    volumeSlider->setValue(80);
+    volumeSlider->setTickPosition(QSlider::TicksBelow);
+    volumeSlider->setTickInterval(10);
+
+    volumeValueLabel = new QLabel("80%", volumeGroupBox);
+    volumeValueLabel->setAlignment(Qt::AlignCenter);
+
+    volumeLayout->addWidget(volumeLabel);
+    volumeLayout->addWidget(volumeSlider);
+    volumeLayout->addWidget(volumeValueLabel);
+
+    // Microphone Level Indicator
+    micLevelGroupBox = new QGroupBox("Microphone Level", audioTab);
+    micLevelLayout = new QVBoxLayout(micLevelGroupBox);
+
+    micLevelLabel = new QLabel("Current Input Level:", micLevelGroupBox);
+    micLevelIndicator = new QProgressBar(micLevelGroupBox);
+    micLevelIndicator->setRange(0, 100);
+    micLevelIndicator->setValue(0);
+    micLevelIndicator->setTextVisible(true);
+    micLevelIndicator->setFormat("%p%");
+
+    micLevelLayout->addWidget(micLevelLabel);
+    micLevelLayout->addWidget(micLevelIndicator);
+
+    // Input Device Selection
+    inputDeviceGroupBox = new QGroupBox("Input Device", audioTab);
+    inputDeviceLayout = new QVBoxLayout(inputDeviceGroupBox);
+
+    inputDeviceLabel = new QLabel("Select Input Device:", inputDeviceGroupBox);
+    inputDeviceComboBox = new QComboBox(inputDeviceGroupBox);
+
+    // Add some common input devices (this would be populated from actual audio devices)
+    inputDeviceComboBox->addItem("Default Microphone");
+    inputDeviceComboBox->addItem("Built-in Microphone");
+    inputDeviceComboBox->addItem("USB Microphone");
+    inputDeviceComboBox->addItem("Audio Interface");
+
+    inputDeviceLayout->addWidget(inputDeviceLabel);
+    inputDeviceLayout->addWidget(inputDeviceComboBox);
+
+    // Add widgets to audio layout
+    audioLayout->addWidget(volumeGroupBox);
+    audioLayout->addWidget(micLevelGroupBox);
+    audioLayout->addWidget(inputDeviceGroupBox);
+    audioLayout->addStretch();
+
+    // Add audio tab to tab widget
+    tabWidget->addTab(audioTab, "Audio");
+}
+
+void MainWindow::setupAdvancedTab()
+{
+    advancedTab = new QWidget();
+    advancedLayout = new QVBoxLayout(advancedTab);
+    advancedLayout->setSpacing(20);
+    advancedLayout->setContentsMargins(20, 20, 20, 20);
+
+    // Model Selection
+    modelGroupBox = new QGroupBox("Model Selection", advancedTab);
+    modelLayout = new QVBoxLayout(modelGroupBox);
+
+    modelLabel = new QLabel("Transcription Model:", modelGroupBox);
+    modelComboBox = new QComboBox(modelGroupBox);
+
+    // Add available models
+    modelComboBox->addItem("whisper-1 (Default)");
+    modelComboBox->addItem("whisper-1-large-v3");
+    modelComboBox->addItem("whisper-1-large-v2");
+
+    modelLayout->addWidget(modelLabel);
+    modelLayout->addWidget(modelComboBox);
+
+    // System Prompt
+    systemPromptGroupBox = new QGroupBox("System Prompt", advancedTab);
+    systemPromptLayout = new QVBoxLayout(systemPromptGroupBox);
+
+    systemPromptLabel = new QLabel("Custom system prompt for transcription:", systemPromptGroupBox);
+    systemPromptEdit = new QTextEdit(systemPromptGroupBox);
+    systemPromptEdit->setPlaceholderText("Enter a custom system prompt to guide the transcription...");
+    systemPromptEdit->setMaximumHeight(100);
+
+    systemPromptLayout->addWidget(systemPromptLabel);
+    systemPromptLayout->addWidget(systemPromptEdit);
+
+    // Add widgets to advanced layout
+    advancedLayout->addWidget(modelGroupBox);
+    advancedLayout->addWidget(systemPromptGroupBox);
+    advancedLayout->addStretch();
+
+    // Add advanced tab to tab widget
+    tabWidget->addTab(advancedTab, "Advanced");
 }
 
 void MainWindow::setupConnections()
@@ -177,6 +305,16 @@ void MainWindow::setupConnections()
 
     // Connect API key link
     connect(apiKeyLink, &QLabel::linkActivated, this, &MainWindow::onApiKeyLinkClicked);
+
+    // Connect audio tab controls
+    connect(volumeSlider, &QSlider::valueChanged, this, &MainWindow::onVolumeChanged);
+    connect(inputDeviceComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &MainWindow::onInputDeviceChanged);
+
+    // Connect advanced tab controls
+    connect(modelComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &MainWindow::onModelChanged);
+    connect(systemPromptEdit, &QTextEdit::textChanged, this, &MainWindow::onSystemPromptChanged);
 }
 
 void MainWindow::onTranscriptionFinished()
@@ -497,6 +635,29 @@ void MainWindow::onPttKeyChanged()
 void MainWindow::onApiKeyLinkClicked()
 {
     QDesktopServices::openUrl(QUrl("https://platform.openai.com/api-keys"));
+}
+
+void MainWindow::onVolumeChanged(int value)
+{
+    volumeValueLabel->setText(QString("%1%").arg(value));
+    // TODO: Apply volume setting to audio recorder
+}
+
+void MainWindow::onInputDeviceChanged(int index)
+{
+    // TODO: Apply input device selection to audio recorder
+    Q_UNUSED(index)
+}
+
+void MainWindow::onModelChanged(int index)
+{
+    // TODO: Apply model selection to transcriber
+    Q_UNUSED(index)
+}
+
+void MainWindow::onSystemPromptChanged()
+{
+    // TODO: Apply system prompt to transcriber
 }
 
 void MainWindow::updateInputMethodUI()

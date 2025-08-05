@@ -19,6 +19,10 @@
 #include <QRadioButton>
 #include <QButtonGroup>
 #include <QComboBox>
+#include <QTabWidget>
+#include <QSlider>
+#include <QProgressBar>
+#include <QTextEdit>
 #include "hotkeywidget.h"
 #include "globalhotkeymanager.h"
 #include "audiorecorder.h"
@@ -56,12 +60,19 @@ private slots:
     void onInputMethodChanged();
     void onPttKeyChanged();
     void onApiKeyLinkClicked();
+    void onVolumeChanged(int value);
+    void onInputDeviceChanged(int index);
+    void onModelChanged(int index);
+    void onSystemPromptChanged();
 
 private:
     void setupUI();
     void setupConnections();
     void registerGlobalHotkey(const QString &hotkey);
     void updateInputMethodUI();
+    void setupSetupTab();
+    void setupAudioTab();
+    void setupAdvancedTab();
 
     enum State
     {
@@ -75,7 +86,11 @@ private:
     // UI Components
     QWidget *centralWidget;
     QVBoxLayout *mainLayout;
+    QTabWidget *tabWidget;
 
+    // Setup Tab
+    QWidget *setupTab;
+    QVBoxLayout *setupLayout;
     QGroupBox *apiGroupBox;
     QVBoxLayout *apiLayout;
     QHBoxLayout *apiKeyLayout;
@@ -97,6 +112,38 @@ private:
     QRadioButton *pttModeRadio;
     QComboBox *pttKeyComboBox;
     QLabel *pttKeyLabel;
+
+    // Audio Tab
+    QWidget *audioTab;
+    QVBoxLayout *audioLayout;
+    QGroupBox *volumeGroupBox;
+    QVBoxLayout *volumeLayout;
+    QLabel *volumeLabel;
+    QSlider *volumeSlider;
+    QLabel *volumeValueLabel;
+
+    QGroupBox *micLevelGroupBox;
+    QVBoxLayout *micLevelLayout;
+    QLabel *micLevelLabel;
+    QProgressBar *micLevelIndicator;
+
+    QGroupBox *inputDeviceGroupBox;
+    QVBoxLayout *inputDeviceLayout;
+    QLabel *inputDeviceLabel;
+    QComboBox *inputDeviceComboBox;
+
+    // Advanced Tab
+    QWidget *advancedTab;
+    QVBoxLayout *advancedLayout;
+    QGroupBox *modelGroupBox;
+    QVBoxLayout *modelLayout;
+    QLabel *modelLabel;
+    QComboBox *modelComboBox;
+
+    QGroupBox *systemPromptGroupBox;
+    QVBoxLayout *systemPromptLayout;
+    QLabel *systemPromptLabel;
+    QTextEdit *systemPromptEdit;
 
     // Global hotkey manager
     GlobalHotkeyManager *m_globalHotkeyManager;
