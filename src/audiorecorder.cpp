@@ -11,7 +11,6 @@
 #include <QUrl>
 #include <QThread>
 #include "fixedbufferdevice.h"
-#include "openaitranscriber.h"
 
 AudioRecorder::AudioRecorder(QObject *parent)
     : QObject(parent), m_audioInput(nullptr), m_audioSource(nullptr), m_audioBuffer(nullptr), m_isRecording(false), m_transcriber(nullptr)
@@ -19,13 +18,13 @@ AudioRecorder::AudioRecorder(QObject *parent)
     setupAudioInput();
 
     // Create OpenAI transcriber
-    m_transcriber = new OpenAITranscriber(this);
+    m_transcriber = new OpenAITranscriberRealtime(this);
     m_transcriber->setAudioBuffer(m_audioBuffer);
 
     // Connect transcriber signals
-    connect(m_transcriber, &OpenAITranscriber::transcriptionReceived,
+    connect(m_transcriber, &OpenAITranscriberRealtime::transcriptionReceived,
             this, &AudioRecorder::transcriptionReceived);
-    connect(m_transcriber, &OpenAITranscriber::transcriptionError,
+    connect(m_transcriber, &OpenAITranscriberRealtime::transcriptionError,
             this, &AudioRecorder::transcriptionError);
 }
 
@@ -115,11 +114,10 @@ void AudioRecorder::startRecording()
     // Clear previous recording
     clearBuffer();
 
-    // Start recording to circular buffer
     m_audioSource->start(m_audioBuffer);
     m_isRecording = true;
 
-    qDebug() << "Started audio recording to circular buffer";
+    qDebug() << "Started audio recording to buffer";
     emit recordingStarted();
 }
 
@@ -172,6 +170,11 @@ int AudioRecorder::getBufferSize() const
         return m_audioBuffer->getBufferSize();
     }
     return 0;
+}
+
+AudioBuffer *AudioRecorder::getAudioBuffer() const
+{
+    return m_audioBuffer;
 }
 
 void AudioRecorder::resetAudioState()

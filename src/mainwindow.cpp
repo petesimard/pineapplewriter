@@ -7,7 +7,8 @@
 #include <QStyle>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), m_globalHotkeyManager(new GlobalHotkeyManager(this)), m_audioRecorder(new AudioRecorder(this)), m_keyboardSimulator(new KeyboardSimulator())
+    : QMainWindow(parent), m_globalHotkeyManager(new GlobalHotkeyManager(this)), m_audioRecorder(new AudioRecorder(this)),
+      m_keyboardSimulator(new KeyboardSimulator()), m_openAITranscriber(new OpenAITranscriberPost(this))
 {
     setupUI();
     setupConnections();
@@ -73,6 +74,19 @@ void MainWindow::setupConnections()
             this, &MainWindow::onTranscriptionReceived);
     connect(m_audioRecorder, &AudioRecorder::transcriptionError,
             this, &MainWindow::onTranscriptionError);
+
+    connect(m_openAITranscriber, &OpenAITranscriberPost::transcriptionReceived,
+            this, &MainWindow::onTranscriptionReceived);
+    connect(m_openAITranscriber, &OpenAITranscriberPost::transcriptionError,
+            this, &MainWindow::onTranscriptionError);
+    connect(m_openAITranscriber, &OpenAITranscriberPost::transcriptionFinished,
+            this, &MainWindow::onTranscriptionFinished);
+}
+
+void MainWindow::onTranscriptionFinished()
+{
+    currentState = IDLE;
+    updateTrayIcon();
 }
 
 void MainWindow::onPttStateChanged(bool isActive)
@@ -81,11 +95,17 @@ void MainWindow::onPttStateChanged(bool isActive)
 
     if (isActive)
     {
-        startTranscription();
+        if (currentState == IDLE)
+        {
+            startRecording();
+        }
     }
     else
     {
-        stopTranscription();
+        if (currentState == RECORDING)
+        {
+            stopRecording();
+        }
     }
 }
 
@@ -168,7 +188,7 @@ void MainWindow::onGlobalHotkeyPressed()
     if (m_audioRecorder->isTranscribing())
     {
         qDebug() << "Stopping transcription...";
-        stopTranscription();
+        stopRecording();
     }
     else
     {
@@ -181,7 +201,7 @@ void MainWindow::onGlobalHotkeyPressed()
             return;
         }
 
-        startTranscription();
+        startRecording();
     }
 }
 
@@ -211,7 +231,7 @@ void MainWindow::onTranscriptionError(const QString &error)
                          "Transcription error: " + error);
 }
 
-void MainWindow::startTranscription()
+void MainWindow::startRecording()
 {
     QString apiKey = apiKeyEdit->text().trimmed();
     if (apiKey.isEmpty())
@@ -221,18 +241,23 @@ void MainWindow::startTranscription()
         return;
     }
 
-    m_audioRecorder->setOpenAIApiKey(apiKey);
-    m_audioRecorder->startTranscription();
-    m_keyboardSimulator->onStreamingStarted();
+    m_audioRecorder->startRecording();
 
+    currentState = RECORDING;
     // Update tray icon to show recording
-    updateTrayIcon(true);
+    updateTrayIcon();
 }
 
-void MainWindow::stopTranscription()
+void MainWindow::stopRecording()
 {
-    m_audioRecorder->stopTranscription();
-    updateTrayIcon(false);
+    m_audioRecorder->stopRecording();
+
+    m_openAITranscriber->setApiKey(apiKeyEdit->text().trimmed());
+    m_openAITranscriber->setAudioBuffer(m_audioRecorder->getAudioBuffer());
+    m_openAITranscriber->transcribeAudio();
+
+    currentState = PROCESSING;
+    updateTrayIcon();
 }
 
 void MainWindow::setupSystemTray()
@@ -242,7 +267,12 @@ void MainWindow::setupSystemTray()
 
     // Load icon from resources
     m_defaultIcon = QPixmap(":/appicon.png").scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    m_recordingIcon = createRecordingIcon();
+
+    QColor greenColor(0, 255, 0); // Bright green
+    m_recordingIcon = createRecordingIcon(greenColor);
+
+    QColor yellowColor(255, 255, 0); // Bright yellow
+    m_processingIcon = createRecordingIcon(yellowColor);
 
     // Set initial icon
     m_trayIcon->setIcon(QIcon(m_defaultIcon));
@@ -271,12 +301,17 @@ void MainWindow::setupSystemTray()
     m_trayIcon->show();
 }
 
-void MainWindow::updateTrayIcon(bool isRecording)
+void MainWindow::updateTrayIcon()
 {
-    if (isRecording)
+    if (currentState == RECORDING)
     {
         m_trayIcon->setIcon(QIcon(m_recordingIcon));
         m_trayIcon->setToolTip("Pineapple Writer - Recording");
+    }
+    else if (currentState == PROCESSING)
+    {
+        m_trayIcon->setIcon(QIcon(m_processingIcon));
+        m_trayIcon->setToolTip("Pineapple Writer - Processing");
     }
     else
     {
@@ -285,7 +320,7 @@ void MainWindow::updateTrayIcon(bool isRecording)
     }
 }
 
-QPixmap MainWindow::createRecordingIcon()
+QPixmap MainWindow::createRecordingIcon(QColor color)
 {
     // Create a copy of the default icon
     QPixmap icon = m_defaultIcon;
@@ -295,9 +330,8 @@ QPixmap MainWindow::createRecordingIcon()
     painter.setRenderHint(QPainter::Antialiasing);
 
     // Draw a green circle in the bottom-right corner
-    QColor greenColor(0, 255, 0); // Bright green
     painter.setPen(Qt::NoPen);
-    painter.setBrush(greenColor);
+    painter.setBrush(color);
 
     // Calculate circle position and size
     int circleSize = icon.width() / 2; // 1/2 of icon size

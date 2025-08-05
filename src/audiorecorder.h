@@ -10,7 +10,7 @@
 #include <QTimer>
 #include <QIODevice>
 #include "audiobuffer.h"
-#include "openaitranscriber.h"
+#include "openaitranscriber_realtime.h"
 
 class AudioRecorder : public QObject
 {
@@ -34,6 +34,7 @@ public:
     void startTranscription();
     void stopTranscription();
     bool isTranscribing() const;
+    AudioBuffer *getAudioBuffer() const;
 
 signals:
     void recordingStarted();
@@ -48,7 +49,7 @@ private:
     AudioBuffer *m_audioBuffer;
     QByteArray m_recordedAudio;
     bool m_isRecording;
-    OpenAITranscriber *m_transcriber;
+    OpenAITranscriberRealtime *m_transcriber;
 
     void setupAudioInput();
 };

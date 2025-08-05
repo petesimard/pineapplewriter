@@ -36,8 +36,10 @@ add_executable(SystemTrayApp
     src/circularbufferdevice.h
     src/fixedbufferdevice.cpp
     src/fixedbufferdevice.h
-    src/openaitranscriber.cpp
-    src/openaitranscriber.h
+    src/openaitranscriber_realtime.cpp
+    src/openaitranscriber_realtime.h
+    src/openaitranscriber_post.cpp
+    src/openaitranscriber_post.h
     src/keyboardsimulator.cpp
     src/keyboardsimulator.h
     src/postprocess.cpp

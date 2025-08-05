@@ -20,6 +20,7 @@
 #include "globalhotkeymanager.h"
 #include "audiorecorder.h"
 #include "keyboardsimulator.h"
+#include "openaitranscriber_post.h"
 
 class MainWindow : public QMainWindow
 {
@@ -41,14 +42,24 @@ private slots:
     void onGlobalHotkeyPressed();
     void onTranscriptionReceived(const QString &text);
     void onTranscriptionError(const QString &error);
-    void startTranscription();
-    void stopTranscription();
+    void onTranscriptionFinished();
+    void startRecording();
+    void stopRecording();
     void onPttStateChanged(bool isActive);
 
 private:
     void setupUI();
     void setupConnections();
     void registerGlobalHotkey(const QString &hotkey);
+
+    enum State
+    {
+        IDLE,
+        RECORDING,
+        PROCESSING
+    };
+
+    State currentState = IDLE;
 
     // UI Components
     QWidget *centralWidget;
@@ -70,6 +81,9 @@ private:
     // Audio recorder
     AudioRecorder *m_audioRecorder;
 
+    // OpenAI transcriber
+    OpenAITranscriberPost *m_openAITranscriber;
+
     // Keyboard simulator
     KeyboardSimulator *m_keyboardSimulator;
 
@@ -80,10 +94,11 @@ private:
     QAction *m_quitAction;
     QPixmap m_defaultIcon;
     QPixmap m_recordingIcon;
+    QPixmap m_processingIcon;
 
     void setupSystemTray();
-    void updateTrayIcon(bool isRecording);
-    QPixmap createRecordingIcon();
+    void updateTrayIcon();
+    QPixmap createRecordingIcon(QColor color);
 };
 
 #endif // MAINWINDOW_H

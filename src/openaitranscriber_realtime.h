@@ -13,13 +13,13 @@
 
 class AudioBuffer;
 
-class OpenAITranscriber : public QObject
+class OpenAITranscriberRealtime : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit OpenAITranscriber(QObject *parent = nullptr);
-    ~OpenAITranscriber();
+    explicit OpenAITranscriberRealtime(QObject *parent = nullptr);
+    ~OpenAITranscriberRealtime();
 
     void setApiKey(const QString &apiKey);
     void setAudioBuffer(AudioBuffer *buffer);

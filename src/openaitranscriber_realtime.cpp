@@ -1,4 +1,4 @@
-#include "openaitranscriber.h"
+#include "openaitranscriber_realtime.h"
 #include "audiobuffer.h"
 #include <QDebug>
 #include <QJsonDocument>
@@ -10,31 +10,31 @@
 #include <QUrlQuery>
 #include <QTimer>
 
-OpenAITranscriber::OpenAITranscriber(QObject *parent)
+OpenAITranscriberRealtime::OpenAITranscriberRealtime(QObject *parent)
     : QObject(parent), m_webSocket(nullptr), m_workerThread(nullptr), m_timer(nullptr), m_audioBuffer(nullptr), m_isStreaming(false), m_sessionId(""), m_currentItemId("")
 {
     // Create timer for periodic audio processing
     m_timer = new QTimer(this);
     m_timer->setInterval(1000);
-    connect(m_timer, &QTimer::timeout, this, &OpenAITranscriber::onTimerTimeout);
+    connect(m_timer, &QTimer::timeout, this, &OpenAITranscriberRealtime::onTimerTimeout);
 }
 
-OpenAITranscriber::~OpenAITranscriber()
+OpenAITranscriberRealtime::~OpenAITranscriberRealtime()
 {
     stopStreaming();
 }
 
-void OpenAITranscriber::setApiKey(const QString &apiKey)
+void OpenAITranscriberRealtime::setApiKey(const QString &apiKey)
 {
     m_apiKey = apiKey;
 }
 
-void OpenAITranscriber::setAudioBuffer(AudioBuffer *buffer)
+void OpenAITranscriberRealtime::setAudioBuffer(AudioBuffer *buffer)
 {
     m_audioBuffer = buffer;
 }
 
-void OpenAITranscriber::startStreaming()
+void OpenAITranscriberRealtime::startStreaming()
 {
     if (m_isStreaming)
     {
@@ -64,7 +64,7 @@ void OpenAITranscriber::startStreaming()
     emit streamingStarted();
 }
 
-void OpenAITranscriber::stopStreaming()
+void OpenAITranscriberRealtime::stopStreaming()
 {
     if (!m_isStreaming)
     {
@@ -89,12 +89,12 @@ void OpenAITranscriber::stopStreaming()
     emit streamingStopped();
 }
 
-bool OpenAITranscriber::isStreaming() const
+bool OpenAITranscriberRealtime::isStreaming() const
 {
     return m_isStreaming;
 }
 
-void OpenAITranscriber::setupWebSocket()
+void OpenAITranscriberRealtime::setupWebSocket()
 {
     if (m_webSocket)
     {
@@ -104,12 +104,12 @@ void OpenAITranscriber::setupWebSocket()
     m_webSocket = new QWebSocket();
 
     // Connect signals
-    connect(m_webSocket, &QWebSocket::connected, this, &OpenAITranscriber::onWebSocketConnected);
-    connect(m_webSocket, &QWebSocket::disconnected, this, &OpenAITranscriber::onWebSocketDisconnected);
+    connect(m_webSocket, &QWebSocket::connected, this, &OpenAITranscriberRealtime::onWebSocketConnected);
+    connect(m_webSocket, &QWebSocket::disconnected, this, &OpenAITranscriberRealtime::onWebSocketDisconnected);
     connect(m_webSocket, QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error),
-            this, &OpenAITranscriber::onWebSocketError);
+            this, &OpenAITranscriberRealtime::onWebSocketError);
     connect(m_webSocket, &QWebSocket::textMessageReceived,
-            this, &OpenAITranscriber::onWebSocketTextMessageReceived);
+            this, &OpenAITranscriberRealtime::onWebSocketTextMessageReceived);
 
     // Connect to OpenAI Realtime API with authentication
     QUrl url("wss://api.openai.com/v1/realtime?intent=transcription");
@@ -124,7 +124,7 @@ void OpenAITranscriber::setupWebSocket()
     m_webSocket->open(request);
 }
 
-void OpenAITranscriber::onWebSocketConnected()
+void OpenAITranscriberRealtime::onWebSocketConnected()
 {
     qDebug() << "WebSocket connected to OpenAI Realtime API";
 
@@ -133,7 +133,7 @@ void OpenAITranscriber::onWebSocketConnected()
     m_timer->start();
 }
 
-void OpenAITranscriber::onWebSocketDisconnected()
+void OpenAITranscriberRealtime::onWebSocketDisconnected()
 {
     qDebug() << "WebSocket disconnected from OpenAI Realtime API";
     m_timer->stop();
@@ -144,13 +144,13 @@ void OpenAITranscriber::onWebSocketDisconnected()
     }
 }
 
-void OpenAITranscriber::onWebSocketError(QAbstractSocket::SocketError error)
+void OpenAITranscriberRealtime::onWebSocketError(QAbstractSocket::SocketError error)
 {
     qWarning() << "WebSocket error:" << error;
     emit transcriptionError(QString("WebSocket error: %1").arg(error));
 }
 
-void OpenAITranscriber::onWebSocketTextMessageReceived(const QString &message)
+void OpenAITranscriberRealtime::onWebSocketTextMessageReceived(const QString &message)
 {
     QJsonParseError parseError;
     QJsonDocument doc = QJsonDocument::fromJson(message.toUtf8(), &parseError);
@@ -193,7 +193,7 @@ void OpenAITranscriber::onWebSocketTextMessageReceived(const QString &message)
     }
 }
 
-void OpenAITranscriber::onTimerTimeout()
+void OpenAITranscriberRealtime::onTimerTimeout()
 {
     if (!m_isStreaming || !m_audioBuffer || !m_webSocket)
     {
@@ -213,7 +213,7 @@ void OpenAITranscriber::onTimerTimeout()
     sendAudioBuffer(currentData);
 }
 
-void OpenAITranscriber::sendSessionUpdate()
+void OpenAITranscriberRealtime::sendSessionUpdate()
 {
     QJsonObject sessionUpdate = createSessionUpdateMessage();
     QJsonDocument doc(sessionUpdate);
@@ -226,7 +226,7 @@ void OpenAITranscriber::sendSessionUpdate()
     }
 }
 
-void OpenAITranscriber::sendAudioBuffer(const QByteArray &audioData)
+void OpenAITranscriberRealtime::sendAudioBuffer(const QByteArray &audioData)
 {
     if (!m_webSocket || m_webSocket->state() != QAbstractSocket::ConnectedState || m_sessionId.isEmpty())
     {
@@ -245,12 +245,12 @@ void OpenAITranscriber::sendAudioBuffer(const QByteArray &audioData)
     m_webSocket->sendTextMessage(message);
 }
 
-QByteArray OpenAITranscriber::encodeBase64(const QByteArray &data)
+QByteArray OpenAITranscriberRealtime::encodeBase64(const QByteArray &data)
 {
     return data.toBase64();
 }
 
-QJsonObject OpenAITranscriber::createSessionUpdateMessage()
+QJsonObject OpenAITranscriberRealtime::createSessionUpdateMessage()
 {
     QJsonObject sessionUpdate;
     sessionUpdate["type"] = "transcription_session.update";
@@ -276,7 +276,7 @@ QJsonObject OpenAITranscriber::createSessionUpdateMessage()
     return sessionUpdate;
 }
 
-void OpenAITranscriber::processTranscriptionMessage(const QJsonObject &message)
+void OpenAITranscriberRealtime::processTranscriptionMessage(const QJsonObject &message)
 {
     QString text = message["delta"].toString();
 
@@ -287,7 +287,7 @@ void OpenAITranscriber::processTranscriptionMessage(const QJsonObject &message)
     }
 }
 
-void OpenAITranscriber::processCommittedMessage(const QJsonObject &message)
+void OpenAITranscriberRealtime::processCommittedMessage(const QJsonObject &message)
 {
     QJsonObject committed = message["committed"].toObject();
     m_currentItemId = committed["item_id"].toString();

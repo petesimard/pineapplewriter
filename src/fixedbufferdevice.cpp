@@ -136,10 +136,26 @@ void FixedBufferDevice::writeToBuffer(const QByteArray &data)
     // Check if this write would cause overflow
     if (m_totalBytesWritten + dataSize > m_bufferSize)
     {
-        qDebug() << "FixedBufferDevice: Buffer overflow detected! Clearing buffer.";
-        clear();
+        qDebug() << "FixedBufferDevice: Buffer overflow detected! Doubling buffer size from" << m_bufferSize << "to" << (m_bufferSize * 2);
 
-        // If data is larger than buffer, only keep the first part
+        // Double the buffer size
+        int oldBufferSize = m_bufferSize;
+        m_bufferSize *= 2;
+
+        // Preserve existing data by reading it first
+        QByteArray existingData = readFromBuffer();
+
+        // Resize buffer to new size
+        resizeBuffer(m_bufferSize);
+        // Restore existing data
+        if (!existingData.isEmpty())
+        {
+            m_buffer = existingData;
+            m_writePosition = existingData.size();
+            m_totalBytesWritten = existingData.size();
+        }
+
+        // If data is larger than the new buffer size, only keep the first part
         if (dataSize > m_bufferSize)
         {
             QByteArray firstPart = data.left(m_bufferSize);

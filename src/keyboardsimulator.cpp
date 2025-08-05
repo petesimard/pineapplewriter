@@ -2,7 +2,7 @@
 #include <QDebug>
 #include <QProcess>
 #include <QThread>
-#include "openaitranscriber.h"
+#include "openaitranscriber_realtime.h"
 
 KeyboardSimulator::KeyboardSimulator()
     : m_available(false)
