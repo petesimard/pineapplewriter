@@ -30,5 +30,3 @@ echo "Building the project (Debug mode)..."
 make -j$(nproc)
 
 echo "Debug build completed successfully!"
-echo "You can run the debug application with: ./bin/SystemTrayApp"
-echo "Or press F5 in VS Code to debug!" 

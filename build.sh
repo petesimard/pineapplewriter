@@ -30,4 +30,3 @@ echo "Building the project..."
 make -j$(nproc)
 
 echo "Build completed successfully!"
-echo "You can run the application with: ./bin/SystemTrayApp" 

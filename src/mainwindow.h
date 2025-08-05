@@ -16,6 +16,9 @@
 #include <QAction>
 #include <QPainter>
 #include <QPixmap>
+#include <QRadioButton>
+#include <QButtonGroup>
+#include <QComboBox>
 #include "hotkeywidget.h"
 #include "globalhotkeymanager.h"
 #include "audiorecorder.h"
@@ -46,11 +49,14 @@ private slots:
     void startRecording();
     void stopRecording();
     void onPttStateChanged(bool isActive);
+    void onInputMethodChanged();
+    void onPttKeyChanged();
 
 private:
     void setupUI();
     void setupConnections();
     void registerGlobalHotkey(const QString &hotkey);
+    void updateInputMethodUI();
 
     enum State
     {
@@ -71,9 +77,19 @@ private:
     QLineEdit *apiKeyEdit;
 
     QGroupBox *hotkeyGroupBox;
+    QGroupBox *pttGroupBox;
     QVBoxLayout *hotkeyLayout;
     QLabel *hotkeyLabel;
     HotkeyWidget *hotkeyWidget;
+
+    // Input method selection
+    QGroupBox *inputMethodGroupBox;
+    QVBoxLayout *inputMethodLayout;
+    QButtonGroup *inputMethodButtonGroup;
+    QRadioButton *toggleModeRadio;
+    QRadioButton *pttModeRadio;
+    QComboBox *pttKeyComboBox;
+    QLabel *pttKeyLabel;
 
     // Global hotkey manager
     GlobalHotkeyManager *m_globalHotkeyManager;

@@ -5,6 +5,7 @@
 #include <QCloseEvent>
 #include <QDebug>
 #include <QStyle>
+#include "pushtotalk.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_globalHotkeyManager(new GlobalHotkeyManager(this)), m_audioRecorder(new AudioRecorder(this)),
@@ -16,7 +17,8 @@ MainWindow::MainWindow(QWidget *parent)
     setupSystemTray();
 
     setWindowTitle("Pineapple Writer");
-    setFixedSize(450, 400);
+
+    setFixedSize(470, 350);
     setWindowFlags(Qt::Window | Qt::WindowCloseButtonHint | Qt::WindowMinimizeButtonHint);
 }
 
@@ -46,6 +48,48 @@ void MainWindow::setupUI()
     apiLayout->addWidget(apiLabel);
     apiLayout->addWidget(apiKeyEdit);
 
+    // Input Method Group
+    inputMethodGroupBox = new QGroupBox("Input Method", centralWidget);
+    inputMethodLayout = new QVBoxLayout(inputMethodGroupBox);
+
+    // Radio buttons for input method
+    inputMethodButtonGroup = new QButtonGroup(this);
+    toggleModeRadio = new QRadioButton("Toggle Mode", inputMethodGroupBox);
+    pttModeRadio = new QRadioButton("Push-to-Talk Mode", inputMethodGroupBox);
+
+    inputMethodButtonGroup->addButton(toggleModeRadio, 0);
+    inputMethodButtonGroup->addButton(pttModeRadio, 1);
+
+    inputMethodLayout->addWidget(toggleModeRadio);
+    inputMethodLayout->addWidget(pttModeRadio);
+
+    pttGroupBox = new QGroupBox("Push-to-Talk", centralWidget);
+    auto pttLayout = new QVBoxLayout(pttGroupBox);
+
+    // PTT Key Selection
+    pttKeyLabel = new QLabel("PTT Key:", pttGroupBox);
+    pttKeyComboBox = new QComboBox(pttGroupBox);
+
+    // Add available keys from pushtotalk.h
+    pttKeyComboBox->addItem("Right Alt", Alt_R);
+    pttKeyComboBox->addItem("Left Alt", Alt_L);
+    pttKeyComboBox->addItem("Right Shift", Shift_R);
+    pttKeyComboBox->addItem("Left Shift", Shift_L);
+    pttKeyComboBox->addItem("Right Control", Control_R);
+    pttKeyComboBox->addItem("Left Control", Control_L);
+    pttKeyComboBox->addItem("Caps Lock", Caps_Lock);
+    pttKeyComboBox->addItem("Right Meta", Meta_R);
+    pttKeyComboBox->addItem("Left Meta", Meta_L);
+    pttKeyComboBox->addItem("Right Super", Super_R);
+    pttKeyComboBox->addItem("Left Super", Super_L);
+    pttKeyComboBox->addItem("Right Hyper", Hyper_R);
+    pttKeyComboBox->addItem("Left Hyper", Hyper_L);
+
+    QHBoxLayout *pttKeyLayout = new QHBoxLayout();
+    pttKeyLayout->addWidget(pttKeyLabel);
+    pttKeyLayout->addWidget(pttKeyComboBox);
+    pttLayout->addLayout(pttKeyLayout);
+
     // Hotkey Group
     hotkeyGroupBox = new QGroupBox("Global Hotkey", centralWidget);
     hotkeyLayout = new QVBoxLayout(hotkeyGroupBox);
@@ -58,7 +102,9 @@ void MainWindow::setupUI()
 
     // Add widgets to main layout
     mainLayout->addWidget(apiGroupBox);
+    mainLayout->addWidget(inputMethodGroupBox);
     mainLayout->addWidget(hotkeyGroupBox);
+    mainLayout->addWidget(pttGroupBox);
     mainLayout->addStretch();
 }
 
@@ -68,6 +114,12 @@ void MainWindow::setupConnections()
     connect(hotkeyWidget, &HotkeyWidget::hotkeyChanged, this, &MainWindow::onHotkeyChanged);
     connect(m_globalHotkeyManager, &GlobalHotkeyManager::hotkeyPressed, this, &MainWindow::onGlobalHotkeyPressed);
     connect(m_globalHotkeyManager, &GlobalHotkeyManager::pttStateChanged, this, &MainWindow::onPttStateChanged);
+
+    // Connect input method signals
+    connect(inputMethodButtonGroup, SIGNAL(buttonClicked(QAbstractButton *)),
+            this, SLOT(onInputMethodChanged()));
+    connect(pttKeyComboBox, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(onPttKeyChanged()));
 
     // Connect transcription signals
     connect(m_audioRecorder, &AudioRecorder::transcriptionReceived,
@@ -120,6 +172,8 @@ void MainWindow::saveSettings()
 {
     QSettings settings("Pineapple Writer", "Pineapple Writer");
     settings.setValue("hotkey", hotkeyWidget->getHotkey());
+    settings.setValue("inputMethod", inputMethodButtonGroup->checkedId());
+    settings.setValue("pttKey", pttKeyComboBox->currentData().toInt());
 }
 
 void MainWindow::loadSettings()
@@ -133,6 +187,30 @@ void MainWindow::loadSettings()
 
     hotkeyWidget->setHotkey(hotkey);
     registerGlobalHotkey(hotkey);
+
+    // Load input method settings
+    int inputMethod = settings.value("inputMethod", 0).toInt();
+    if (inputMethod == 1)
+    {
+        pttModeRadio->setChecked(true);
+    }
+    else
+    {
+        toggleModeRadio->setChecked(true);
+    }
+
+    // Load PTT key setting
+    int pttKey = settings.value("pttKey", Alt_R).toInt();
+    int index = pttKeyComboBox->findData(pttKey);
+    if (index >= 0)
+    {
+        pttKeyComboBox->setCurrentIndex(index);
+    }
+
+    // Update UI and apply settings
+    updateInputMethodUI();
+    onInputMethodChanged();
+    onPttKeyChanged();
 
     loadApiKey();
 }
@@ -343,4 +421,38 @@ QPixmap MainWindow::createRecordingIcon(QColor color)
 
     painter.end();
     return icon;
+}
+
+void MainWindow::onInputMethodChanged()
+{
+    saveSettings();
+    updateInputMethodUI();
+
+    // Update GlobalHotkeyManager input method
+    if (pttModeRadio->isChecked())
+    {
+        m_globalHotkeyManager->inputMethod = GlobalHotkeyManager::InputMethod::PTT;
+    }
+    else
+    {
+        m_globalHotkeyManager->inputMethod = GlobalHotkeyManager::InputMethod::Toggle;
+    }
+}
+
+void MainWindow::onPttKeyChanged()
+{
+    saveSettings();
+
+    // Update PTT key in GlobalHotkeyManager
+    int pttKey = pttKeyComboBox->currentData().toInt();
+    m_globalHotkeyManager->setPttKey(pttKey);
+}
+
+void MainWindow::updateInputMethodUI()
+{
+    bool isPttMode = pttModeRadio->isChecked();
+
+    // Show/hide hotkey widget based on mode
+    hotkeyGroupBox->setVisible(!isPttMode);
+    pttGroupBox->setVisible(isPttMode);
 }
