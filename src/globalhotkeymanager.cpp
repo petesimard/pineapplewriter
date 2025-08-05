@@ -10,7 +10,7 @@ GlobalHotkeyManager::GlobalHotkeyManager(QObject *parent)
       m_isRegistered(false)
 {
     m_pushToTalk = new PushToTalk();
-    m_pushToTalk->setCodeCode(Alt_L);
+    m_pushToTalk->setCodeCode(Alt_R);
 
     // Initialize timer to check PushToTalk state
     m_pttStateTimer = new QTimer(this);
@@ -167,4 +167,9 @@ void GlobalHotkeyManager::checkPttState()
             emit pttStateChanged(m_isPttActive);
         }
     }
+}
+
+void GlobalHotkeyManager::setPttKey(int key)
+{
+    m_pushToTalk->setCodeCode(key);
 }

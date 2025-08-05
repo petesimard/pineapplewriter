@@ -20,6 +20,7 @@ public:
     bool unregisterHotkey();
     bool isRegistered() const;
     QString getCurrentHotkey() const;
+    void setPttKey(int key);
 
     enum InputMethod
     {
