@@ -139,9 +139,6 @@ void AudioRecorder::stopRecording()
     }
     m_isRecording = false;
 
-    // Capture the recorded audio
-    captureSystemAudio();
-
     qDebug() << "Stopped audio recording";
     emit recordingStopped();
 }
@@ -175,33 +172,6 @@ int AudioRecorder::getBufferSize() const
         return m_audioBuffer->getBufferSize();
     }
     return 0;
-}
-
-void AudioRecorder::captureSystemAudio()
-{
-    // Get the recorded data from circular buffer
-    if (m_audioBuffer)
-    {
-        m_recordedAudio = m_audioBuffer->getData();
-        qDebug() << "Captured" << m_recordedAudio.size() << "bytes of audio data from circular buffer";
-
-        // Save captured audio to file
-        QFile file("test.pcm");
-        if (file.open(QIODevice::WriteOnly))
-        {
-            file.write(m_recordedAudio);
-            file.close();
-            qDebug() << "Saved audio data to test.pcm";
-        }
-        else
-        {
-            qWarning() << "Failed to save audio data to test.pcm:" << file.errorString();
-        }
-    }
-    else
-    {
-        qWarning() << "Circular buffer not initialized";
-    }
 }
 
 void AudioRecorder::resetAudioState()

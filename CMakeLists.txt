@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui Multimedia Network WebSockets)
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(X11 REQUIRED x11)
+pkg_check_modules(X11 REQUIRED x11 xtst)
 
 # Set Qt6 specific properties
 set(CMAKE_AUTOMOC ON)

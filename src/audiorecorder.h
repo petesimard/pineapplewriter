@@ -51,7 +51,6 @@ private:
     OpenAITranscriber *m_transcriber;
 
     void setupAudioInput();
-    void captureSystemAudio();
 };
 
 #endif // AUDIORECORDER_H
