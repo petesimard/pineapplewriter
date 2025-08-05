@@ -185,14 +185,14 @@ void MainWindow::onGlobalHotkeyPressed()
     qDebug() << "Global hotkey pressed!";
 
     // Toggle transcription
-    if (m_audioRecorder->isTranscribing())
+    if (m_audioRecorder->isRecording())
     {
-        qDebug() << "Stopping transcription...";
+        qDebug() << "Stopping recording...";
         stopRecording();
     }
     else
     {
-        qDebug() << "Starting transcription...";
+        qDebug() << "Starting recording...";
         QString apiKey = apiKeyEdit->text().trimmed();
         if (apiKey.isEmpty())
         {

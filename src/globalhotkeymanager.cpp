@@ -158,6 +158,9 @@ bool GlobalHotkeyManager::parseHotkeyString(const QString &hotkeyString, QKeySeq
 
 void GlobalHotkeyManager::checkPttState()
 {
+    if (inputMethod != InputMethod::PTT)
+        return;
+
     if (m_pushToTalk)
     {
         bool currentPttState = m_pushToTalk->m_isActive;
