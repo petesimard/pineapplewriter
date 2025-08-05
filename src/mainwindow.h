@@ -33,8 +33,12 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    // Universal error function
+    void showUniversalError(const QString &title, const QString &message);
+
 protected:
     void closeEvent(QCloseEvent *event) override;
+    void showEvent(QShowEvent *event) override;
 
 private slots:
     void saveSettings();
@@ -51,6 +55,7 @@ private slots:
     void onPttStateChanged(bool isActive);
     void onInputMethodChanged();
     void onPttKeyChanged();
+    void onApiKeyLinkClicked();
 
 private:
     void setupUI();
@@ -72,9 +77,11 @@ private:
     QVBoxLayout *mainLayout;
 
     QGroupBox *apiGroupBox;
-    QHBoxLayout *apiLayout;
+    QVBoxLayout *apiLayout;
+    QHBoxLayout *apiKeyLayout;
     QLabel *apiLabel;
     QLineEdit *apiKeyEdit;
+    QLabel *apiKeyLink;
 
     QGroupBox *hotkeyGroupBox;
     QGroupBox *pttGroupBox;

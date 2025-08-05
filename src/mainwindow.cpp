@@ -5,6 +5,8 @@
 #include <QCloseEvent>
 #include <QDebug>
 #include <QStyle>
+#include <QDesktopServices>
+#include <QUrl>
 #include "pushtotalk.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -18,13 +20,41 @@ MainWindow::MainWindow(QWidget *parent)
 
     setWindowTitle("Pineapple Writer");
 
-    setFixedSize(470, 350);
+    setFixedSize(470, 345);
     setWindowFlags(Qt::Window | Qt::WindowCloseButtonHint | Qt::WindowMinimizeButtonHint);
+    setWindowIcon(QIcon(":/appicon.png"));
 }
 
 MainWindow::~MainWindow()
 {
     saveSettings();
+}
+
+void MainWindow::showUniversalError(const QString &title, const QString &message)
+{
+    // Show the UI if it's hidden
+    if (!isVisible())
+    {
+        show();
+        raise();
+        activateWindow();
+    }
+
+    // Show the error message
+    QMessageBox::warning(this, title, message);
+}
+
+void MainWindow::showEvent(QShowEvent *event)
+{
+    // If recording and UI is shown, stop recording and cancel transcription
+    if (currentState == RECORDING)
+    {
+        stopRecording();
+        currentState = IDLE;
+        updateTrayIcon();
+    }
+
+    QMainWindow::showEvent(event);
 }
 
 void MainWindow::setupUI()
@@ -38,15 +68,26 @@ void MainWindow::setupUI()
 
     // OpenAI API Key Group
     apiGroupBox = new QGroupBox("OpenAI API Key", centralWidget);
-    apiLayout = new QHBoxLayout(apiGroupBox);
+    apiLayout = new QVBoxLayout(apiGroupBox);
 
+    apiKeyLayout = new QHBoxLayout();
     apiLabel = new QLabel("API Key:", apiGroupBox);
     apiKeyEdit = new QLineEdit(apiGroupBox);
     apiKeyEdit->setEchoMode(QLineEdit::Password);
     apiKeyEdit->setPlaceholderText("Enter your OpenAI API key");
 
-    apiLayout->addWidget(apiLabel);
-    apiLayout->addWidget(apiKeyEdit);
+    apiKeyLayout->addWidget(apiLabel);
+    apiKeyLayout->addWidget(apiKeyEdit);
+
+    // API Key Link
+    apiKeyLink = new QLabel(apiGroupBox);
+    apiKeyLink->setText("<a href=\"https://platform.openai.com/api-keys\">Get API Key</a>");
+    apiKeyLink->setOpenExternalLinks(false);
+    apiKeyLink->setTextFormat(Qt::RichText);
+    apiKeyLink->setStyleSheet("QLabel { color: blue; text-decoration: underline; }");
+
+    apiLayout->addLayout(apiKeyLayout);
+    apiLayout->addWidget(apiKeyLink);
 
     // Input Method Group
     inputMethodGroupBox = new QGroupBox("Input Method", centralWidget);
@@ -94,7 +135,7 @@ void MainWindow::setupUI()
     hotkeyGroupBox = new QGroupBox("Global Hotkey", centralWidget);
     hotkeyLayout = new QVBoxLayout(hotkeyGroupBox);
 
-    hotkeyLabel = new QLabel("Click the button below and press your desired key combination to toggle transcription:", hotkeyGroupBox);
+    hotkeyLabel = new QLabel("Press the button below and press your desired key combination:", hotkeyGroupBox);
     hotkeyWidget = new HotkeyWidget(hotkeyGroupBox);
 
     hotkeyLayout->addWidget(hotkeyLabel);
@@ -133,6 +174,9 @@ void MainWindow::setupConnections()
             this, &MainWindow::onTranscriptionError);
     connect(m_openAITranscriber, &OpenAITranscriberPost::transcriptionFinished,
             this, &MainWindow::onTranscriptionFinished);
+
+    // Connect API key link
+    connect(apiKeyLink, &QLabel::linkActivated, this, &MainWindow::onApiKeyLinkClicked);
 }
 
 void MainWindow::onTranscriptionFinished()
@@ -189,7 +233,7 @@ void MainWindow::loadSettings()
     registerGlobalHotkey(hotkey);
 
     // Load input method settings
-    int inputMethod = settings.value("inputMethod", 0).toInt();
+    int inputMethod = settings.value("inputMethod", GlobalHotkeyManager::InputMethod::PTT).toInt();
     if (inputMethod == 1)
     {
         pttModeRadio->setChecked(true);
@@ -199,7 +243,7 @@ void MainWindow::loadSettings()
         toggleModeRadio->setChecked(true);
     }
 
-    // Load PTT key setting
+    // Load PTT key setting - default to Right Alt
     int pttKey = settings.value("pttKey", Alt_R).toInt();
     int index = pttKeyComboBox->findData(pttKey);
     if (index >= 0)
@@ -253,8 +297,7 @@ void MainWindow::registerGlobalHotkey(const QString &hotkey)
     else
     {
         qWarning() << "Failed to register global hotkey:" << hotkey;
-        QMessageBox::warning(this, "Hotkey Registration Failed",
-                             "Failed to register the global hotkey. The hotkey might be already in use by another application.");
+        showUniversalError("Hotkey Registration Failed", "Failed to register the global hotkey. The hotkey might be already in use by another application.");
     }
 }
 
@@ -274,8 +317,7 @@ void MainWindow::onGlobalHotkeyPressed()
         QString apiKey = apiKeyEdit->text().trimmed();
         if (apiKey.isEmpty())
         {
-            QMessageBox::warning(this, "API Key Required",
-                                 "Please enter your OpenAI API key before starting transcription.");
+            showUniversalError("API Key Required", "Please enter your OpenAI API key.");
             return;
         }
 
@@ -305,17 +347,21 @@ void MainWindow::onTranscriptionReceived(const QString &text)
 void MainWindow::onTranscriptionError(const QString &error)
 {
     qWarning() << "Transcription error:" << error;
-    QMessageBox::warning(this, "Transcription Error",
-                         "Transcription error: " + error);
+    showUniversalError("Transcription Error", "Transcription error: " + error);
 }
 
 void MainWindow::startRecording()
 {
+    // Disable recording if the UI is visible
+    if (isVisible())
+    {
+        return;
+    }
+
     QString apiKey = apiKeyEdit->text().trimmed();
     if (apiKey.isEmpty())
     {
-        QMessageBox::warning(this, "API Key Required",
-                             "Please enter your OpenAI API key before starting transcription.");
+        showUniversalError("API Key Required", "Please enter your OpenAI API key before starting transcription.");
         return;
     }
 
@@ -446,6 +492,11 @@ void MainWindow::onPttKeyChanged()
     // Update PTT key in GlobalHotkeyManager
     int pttKey = pttKeyComboBox->currentData().toInt();
     m_globalHotkeyManager->setPttKey(pttKey);
+}
+
+void MainWindow::onApiKeyLinkClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://platform.openai.com/api-keys"));
 }
 
 void MainWindow::updateInputMethodUI()
