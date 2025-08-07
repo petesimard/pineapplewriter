@@ -88,6 +88,7 @@ private:
     };
 
     State currentState = IDLE;
+    bool isLoadingSettings = false;
 
     // UI Components
     QWidget *centralWidget;

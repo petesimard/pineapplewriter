@@ -231,9 +231,9 @@ void MainWindow::setupAdvancedTab()
     modelComboBox = new QComboBox(modelGroupBox);
 
     // Add available models
-    modelComboBox->addItem("whisper-1 (Default)");
-    modelComboBox->addItem("whisper-1-large-v3");
-    modelComboBox->addItem("whisper-1-large-v2");
+    modelComboBox->addItem("gpt-4o-transcribe");
+    modelComboBox->addItem("gpt-4o-mini-transcribe");
+    modelComboBox->addItem("whisper-1");
 
     modelLayout->addWidget(modelLabel);
     modelLayout->addWidget(modelComboBox);
@@ -336,6 +336,11 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::saveSettings()
 {
+    if (isLoadingSettings)
+    {
+        return;
+    }
+
     QSettings settings("Pineapple Writer", "Pineapple Writer");
     settings.setValue("hotkey", hotkeyWidget->getHotkey());
     settings.setValue("inputMethod", inputMethodButtonGroup->checkedId());
@@ -350,10 +355,22 @@ void MainWindow::saveSettings()
             settings.setValue("inputDevice", deviceId.toString());
         }
     }
+
+    // Save model selection
+    if (modelComboBox->currentIndex() >= 0)
+    {
+        auto currentModel = modelComboBox->currentText();
+        settings.setValue("gptModel", currentModel);
+        qDebug() << "Saved model:" << currentModel;
+    }
+
+    // Save system prompt
+    settings.setValue("systemPrompt", systemPromptEdit->toPlainText());
 }
 
 void MainWindow::loadSettings()
 {
+    isLoadingSettings = true;
     QSettings settings("Pineapple Writer", "Pineapple Writer");
     QString hotkey = settings.value("hotkey", "").toString();
     if (hotkey.isEmpty())
@@ -383,6 +400,18 @@ void MainWindow::loadSettings()
         pttKeyComboBox->setCurrentIndex(index);
     }
 
+    // Load volume setting - default to 80%
+    int savedVolume = settings.value("volume", 80).toInt();
+    volumeSlider->setValue(savedVolume);
+    volumeValueLabel->setText(QString("%1%").arg(savedVolume));
+
+    // Apply volume to audio recorder
+    qreal volume = savedVolume / 100.0;
+    if (m_audioRecorder)
+    {
+        m_audioRecorder->setVolume(volume);
+    }
+
     // Load input device setting
     QString savedDeviceId = settings.value("inputDevice", "").toString();
     bool deviceSet = false;
@@ -406,7 +435,32 @@ void MainWindow::loadSettings()
     onInputMethodChanged();
     onPttKeyChanged();
 
+    // Load model selection - default to gpt-4o-transcribe
+    QString savedModel = settings.value("gptModel", "gpt-4o-transcribe").toString();
+    qDebug() << "Loaded model:" << savedModel;
+    int modelIndex = modelComboBox->findText(savedModel);
+    if (modelIndex >= 0)
+    {
+        modelComboBox->setCurrentIndex(modelIndex);
+    }
+    else
+    {
+        // If saved model not found, default to first item (gpt-4o-transcribe)
+        modelComboBox->setCurrentIndex(0);
+    }
+
+    // Apply the loaded model to the transcriber
+    if (m_openAITranscriber)
+    {
+        m_openAITranscriber->setModel(modelComboBox->currentText());
+    }
+
+    // Load system prompt
+    QString savedSystemPrompt = settings.value("systemPrompt", "").toString();
+    systemPromptEdit->setPlainText(savedSystemPrompt);
+
     loadApiKey();
+    isLoadingSettings = false;
 }
 
 bool MainWindow::setAudioDeviceById(QString &savedDeviceId)
@@ -529,7 +583,7 @@ void MainWindow::onTranscriptionError(const QString &error)
 void MainWindow::startRecording()
 {
     // Disable recording if the UI is visible
-    if (isVisible())
+    if (isVisible() && isActiveWindow())
     {
         return;
     }
@@ -714,7 +768,6 @@ void MainWindow::onInputDeviceChanged(int index)
 
                     qDebug() << "Selected input device:" << inputDeviceComboBox->currentText()
                              << "with ID:" << deviceId.toString();
-
                     // Save device selection
                     QSettings settings("Pineapple Writer", "Pineapple Writer");
                     settings.setValue("inputDevice", deviceId.toString());
@@ -727,22 +780,48 @@ void MainWindow::onInputDeviceChanged(int index)
 
 void MainWindow::setAudioDevice(const QAudioDevice &device)
 {
+    // Store current volume setting before changing device
+    int currentVolumeSetting = volumeSlider->value();
+
     m_audioRecorder->setAudioDevice(device);
-    // Update volume display to match current device volume
-    int currentVolume = m_audioRecorder->getVolume() * 100;
-    volumeSlider->setValue(currentVolume);
-    volumeValueLabel->setText(QString("%1%").arg(currentVolume));
+
+    // Restore the saved volume setting after device change
+    qreal volume = currentVolumeSetting / 100.0;
+    m_audioRecorder->setVolume(volume);
+
+    // Update volume display to show the restored setting
+    volumeSlider->setValue(currentVolumeSetting);
+    volumeValueLabel->setText(QString("%1%").arg(currentVolumeSetting));
 }
 
 void MainWindow::onModelChanged(int index)
 {
-    // TODO: Apply model selection to transcriber
-    Q_UNUSED(index)
+    if (index >= 0 && index < modelComboBox->count())
+    {
+        QString selectedModel = modelComboBox->currentText();
+
+        // Apply model selection to transcriber
+        if (m_openAITranscriber)
+        {
+            m_openAITranscriber->setModel(selectedModel);
+            qDebug() << "Model changed to:" << selectedModel;
+        }
+
+        // Save model selection
+        saveSettings();
+    }
 }
 
 void MainWindow::onSystemPromptChanged()
 {
-    // TODO: Apply system prompt to transcriber
+    QString systemPrompt = systemPromptEdit->toPlainText();
+
+    // TODO: Apply system prompt to transcriber when supported
+    // For now, just save the system prompt
+    QSettings settings("Pineapple Writer", "Pineapple Writer");
+    settings.setValue("systemPrompt", systemPrompt);
+
+    qDebug() << "System prompt changed:" << systemPrompt;
 }
 
 void MainWindow::updateInputMethodUI()

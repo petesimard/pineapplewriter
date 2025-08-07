@@ -107,7 +107,7 @@ void OpenAITranscriberPost::transcribeAudio()
     connect(m_currentReply, &QNetworkReply::errorOccurred,
             this, &OpenAITranscriberPost::onNetworkReplyError);
 
-    qDebug() << "Sending transcription request to OpenAI API";
+    qDebug() << "Sending transcription request to OpenAI API with model:" << m_model << "file size:" << audioData.size();
 }
 
 bool OpenAITranscriberPost::isTranscribing() const
