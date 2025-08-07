@@ -23,6 +23,9 @@
 #include <QSlider>
 #include <QProgressBar>
 #include <QTextEdit>
+#include <QAudioDevice>
+#include <QMediaDevices>
+#include <QDebug>
 #include "hotkeywidget.h"
 #include "globalhotkeymanager.h"
 #include "audiorecorder.h"
@@ -73,6 +76,7 @@ private:
     void setupSetupTab();
     void setupAudioTab();
     void setupAdvancedTab();
+    void populateInputDevices();
 
     enum State
     {
@@ -121,11 +125,6 @@ private:
     QLabel *volumeLabel;
     QSlider *volumeSlider;
     QLabel *volumeValueLabel;
-
-    QGroupBox *micLevelGroupBox;
-    QVBoxLayout *micLevelLayout;
-    QLabel *micLevelLabel;
-    QProgressBar *micLevelIndicator;
 
     QGroupBox *inputDeviceGroupBox;
     QVBoxLayout *inputDeviceLayout;

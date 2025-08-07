@@ -194,20 +194,6 @@ void MainWindow::setupAudioTab()
     volumeLayout->addWidget(volumeSlider);
     volumeLayout->addWidget(volumeValueLabel);
 
-    // Microphone Level Indicator
-    micLevelGroupBox = new QGroupBox("Microphone Level", audioTab);
-    micLevelLayout = new QVBoxLayout(micLevelGroupBox);
-
-    micLevelLabel = new QLabel("Current Input Level:", micLevelGroupBox);
-    micLevelIndicator = new QProgressBar(micLevelGroupBox);
-    micLevelIndicator->setRange(0, 100);
-    micLevelIndicator->setValue(0);
-    micLevelIndicator->setTextVisible(true);
-    micLevelIndicator->setFormat("%p%");
-
-    micLevelLayout->addWidget(micLevelLabel);
-    micLevelLayout->addWidget(micLevelIndicator);
-
     // Input Device Selection
     inputDeviceGroupBox = new QGroupBox("Input Device", audioTab);
     inputDeviceLayout = new QVBoxLayout(inputDeviceGroupBox);
@@ -215,18 +201,14 @@ void MainWindow::setupAudioTab()
     inputDeviceLabel = new QLabel("Select Input Device:", inputDeviceGroupBox);
     inputDeviceComboBox = new QComboBox(inputDeviceGroupBox);
 
-    // Add some common input devices (this would be populated from actual audio devices)
-    inputDeviceComboBox->addItem("Default Microphone");
-    inputDeviceComboBox->addItem("Built-in Microphone");
-    inputDeviceComboBox->addItem("USB Microphone");
-    inputDeviceComboBox->addItem("Audio Interface");
+    // Populate the combo box with available audio input devices
+    populateInputDevices();
 
     inputDeviceLayout->addWidget(inputDeviceLabel);
     inputDeviceLayout->addWidget(inputDeviceComboBox);
 
     // Add widgets to audio layout
     audioLayout->addWidget(volumeGroupBox);
-    audioLayout->addWidget(micLevelGroupBox);
     audioLayout->addWidget(inputDeviceGroupBox);
     audioLayout->addStretch();
 
@@ -308,13 +290,15 @@ void MainWindow::setupConnections()
 
     // Connect audio tab controls
     connect(volumeSlider, &QSlider::valueChanged, this, &MainWindow::onVolumeChanged);
-    connect(inputDeviceComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &MainWindow::onInputDeviceChanged);
 
     // Connect advanced tab controls
     connect(modelComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &MainWindow::onModelChanged);
     connect(systemPromptEdit, &QTextEdit::textChanged, this, &MainWindow::onSystemPromptChanged);
+
+    // Connect the combo box signal to handle device changes
+    connect(inputDeviceComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &MainWindow::onInputDeviceChanged);
 }
 
 void MainWindow::onTranscriptionFinished()
@@ -645,8 +629,17 @@ void MainWindow::onVolumeChanged(int value)
 
 void MainWindow::onInputDeviceChanged(int index)
 {
-    // TODO: Apply input device selection to audio recorder
-    Q_UNUSED(index)
+    if (index >= 0 && index < inputDeviceComboBox->count())
+    {
+        QVariant deviceId = inputDeviceComboBox->itemData(index);
+        if (deviceId.isValid())
+        {
+            // TODO: Apply the selected input device to the audio recorder
+            // This would typically involve setting the device ID in the AudioRecorder
+            qDebug() << "Selected input device:" << inputDeviceComboBox->currentText()
+                     << "with ID:" << deviceId.toString();
+        }
+    }
 }
 
 void MainWindow::onModelChanged(int index)
@@ -667,4 +660,25 @@ void MainWindow::updateInputMethodUI()
     // Show/hide hotkey widget based on mode
     hotkeyGroupBox->setVisible(!isPttMode);
     pttGroupBox->setVisible(isPttMode);
+}
+
+void MainWindow::populateInputDevices()
+{
+    // Clear existing items
+    inputDeviceComboBox->clear();
+
+    // Get all available audio input devices
+    const QList<QAudioDevice> inputDevices = QMediaDevices::audioInputs();
+
+    if (inputDevices.isEmpty())
+    {
+        inputDeviceComboBox->addItem("No input devices found");
+        return;
+    }
+
+    // Add each input device to the combo box
+    for (const QAudioDevice &device : inputDevices)
+    {
+        inputDeviceComboBox->addItem(device.description(), device.id());
+    }
 }
