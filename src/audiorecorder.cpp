@@ -13,7 +13,7 @@
 #include "fixedbufferdevice.h"
 
 AudioRecorder::AudioRecorder(QObject *parent)
-    : QObject(parent), m_audioInput(nullptr), m_audioSource(nullptr), m_audioBuffer(nullptr), m_isRecording(false), m_transcriber(nullptr)
+    : QObject(parent), m_audioInput(nullptr), m_audioSource(nullptr), m_audioBuffer(nullptr), m_isRecording(false), m_transcriber(nullptr), m_currentDevice(QMediaDevices::defaultAudioInput())
 {
     setupAudioInput();
 
@@ -72,24 +72,28 @@ void AudioRecorder::setupAudioInput()
     format.setChannelCount(1);
     format.setSampleFormat(QAudioFormat::Int16);
 
-    // Get default audio input device
-    const QList<QAudioDevice> inputDevices = QMediaDevices::audioInputs();
-    if (inputDevices.isEmpty())
+    // Use the current device
+    if (m_currentDevice.isNull())
     {
-        qWarning() << "No audio input devices found";
-        return;
+        // Get default audio input device
+        const QList<QAudioDevice> inputDevices = QMediaDevices::audioInputs();
+        if (inputDevices.isEmpty())
+        {
+            qWarning() << "No audio input devices found";
+            return;
+        }
+        m_currentDevice = inputDevices.first();
     }
 
-    QAudioDevice inputDevice = inputDevices.first();
-    if (!inputDevice.isFormatSupported(format))
+    if (!m_currentDevice.isFormatSupported(format))
     {
         qWarning() << "Default format not supported, trying to use nearest";
-        format = inputDevice.preferredFormat();
+        format = m_currentDevice.preferredFormat();
     }
 
     // Create audio input and source
-    m_audioInput = new QAudioInput(inputDevice, this);
-    m_audioSource = new QAudioSource(inputDevice, format, this);
+    m_audioInput = new QAudioInput(m_currentDevice, this);
+    m_audioSource = new QAudioSource(m_currentDevice, format, this);
 }
 
 bool AudioRecorder::isRecording() const
@@ -236,4 +240,81 @@ void AudioRecorder::stopTranscription()
 bool AudioRecorder::isTranscribing() const
 {
     return m_transcriber ? m_transcriber->isStreaming() : false;
+}
+
+// Volume control methods
+void AudioRecorder::setVolume(qreal volume)
+{
+    if (m_audioSource)
+    {
+        // Clamp volume to valid range (0.0 to 1.0)
+        volume = qBound(0.0, volume, 1.0);
+        m_audioSource->setVolume(volume);
+        qDebug() << "Audio input volume set to:" << volume;
+    }
+}
+
+qreal AudioRecorder::getVolume() const
+{
+    if (m_audioSource)
+    {
+        return m_audioSource->volume();
+    }
+    return 1.0; // Default to full volume if no audio source
+}
+
+// Device selection methods
+void AudioRecorder::setAudioDevice(const QAudioDevice &device)
+{
+    if (m_isRecording)
+    {
+        qWarning() << "Cannot change audio device while recording";
+        return;
+    }
+
+    // Store the new device
+    m_currentDevice = device;
+
+    // Clean up existing audio source
+    if (m_audioSource)
+    {
+        m_audioSource->stop();
+        delete m_audioSource;
+        m_audioSource = nullptr;
+    }
+
+    if (m_audioInput)
+    {
+        delete m_audioInput;
+        m_audioInput = nullptr;
+    }
+
+    // Set up audio format
+    QAudioFormat format;
+    format.setSampleRate(24000);
+    format.setChannelCount(1);
+    format.setSampleFormat(QAudioFormat::Int16);
+
+    // Check if the device supports our format
+    if (!device.isFormatSupported(format))
+    {
+        qWarning() << "Device format not supported, trying to use the nearest";
+        format = device.preferredFormat();
+    }
+
+    // Create new audio input and source with the selected device
+    m_audioInput = new QAudioInput(device, this);
+    m_audioSource = new QAudioSource(device, format, this);
+
+    qDebug() << "Audio device changed to:" << device.description();
+}
+
+QAudioDevice AudioRecorder::getCurrentAudioDevice() const
+{
+    return m_currentDevice;
+}
+
+QList<QAudioDevice> AudioRecorder::getAvailableAudioDevices() const
+{
+    return QMediaDevices::audioInputs();
 }

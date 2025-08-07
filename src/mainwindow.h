@@ -50,6 +50,7 @@ protected:
 private slots:
     void saveSettings();
     void loadSettings();
+    bool setAudioDeviceById(QString &savedDeviceId);
     void saveApiKey();
     void loadApiKey();
     void onHotkeyChanged(const QString &hotkey);
@@ -65,6 +66,7 @@ private slots:
     void onApiKeyLinkClicked();
     void onVolumeChanged(int value);
     void onInputDeviceChanged(int index);
+    void setAudioDevice(const QAudioDevice &device);
     void onModelChanged(int index);
     void onSystemPromptChanged();
 

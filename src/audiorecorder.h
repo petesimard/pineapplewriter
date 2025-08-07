@@ -36,6 +36,15 @@ public:
     bool isTranscribing() const;
     AudioBuffer *getAudioBuffer() const;
 
+    // Volume control methods
+    void setVolume(qreal volume);
+    qreal getVolume() const;
+
+    // Device selection methods
+    void setAudioDevice(const QAudioDevice &device);
+    QAudioDevice getCurrentAudioDevice() const;
+    QList<QAudioDevice> getAvailableAudioDevices() const;
+
 signals:
     void recordingStarted();
     void recordingStopped();
@@ -50,6 +59,7 @@ private:
     QByteArray m_recordedAudio;
     bool m_isRecording;
     OpenAITranscriberRealtime *m_transcriber;
+    QAudioDevice m_currentDevice;
 
     void setupAudioInput();
 };

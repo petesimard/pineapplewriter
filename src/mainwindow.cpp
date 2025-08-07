@@ -340,6 +340,16 @@ void MainWindow::saveSettings()
     settings.setValue("hotkey", hotkeyWidget->getHotkey());
     settings.setValue("inputMethod", inputMethodButtonGroup->checkedId());
     settings.setValue("pttKey", pttKeyComboBox->currentData().toInt());
+
+    // Save input device selection
+    if (inputDeviceComboBox->currentIndex() >= 0)
+    {
+        QVariant deviceId = inputDeviceComboBox->currentData();
+        if (deviceId.isValid())
+        {
+            settings.setValue("inputDevice", deviceId.toString());
+        }
+    }
 }
 
 void MainWindow::loadSettings()
@@ -373,12 +383,56 @@ void MainWindow::loadSettings()
         pttKeyComboBox->setCurrentIndex(index);
     }
 
-    // Update UI and apply settings
-    updateInputMethodUI();
+    // Load input device setting
+    QString savedDeviceId = settings.value("inputDevice", "").toString();
+    bool deviceSet = false;
+    if (!savedDeviceId.isEmpty())
+    {
+        // Find the saved device in the combo box
+        deviceSet = setAudioDeviceById(savedDeviceId);
+    }
+
+    if (!deviceSet)
+    {
+        // If no device is set, use the first available device
+        QAudioDevice currentAudioDevice = m_audioRecorder->getCurrentAudioDevice();
+        if (!currentAudioDevice.isNull())
+        {
+            QString currentDeviceId = currentAudioDevice.id();
+            deviceSet = setAudioDeviceById(currentDeviceId);
+        }
+    }
+
     onInputMethodChanged();
     onPttKeyChanged();
 
     loadApiKey();
+}
+
+bool MainWindow::setAudioDeviceById(QString &savedDeviceId)
+{
+    int deviceIndex = inputDeviceComboBox->findData(savedDeviceId, 256, Qt::MatchContains);
+
+    if (deviceIndex >= 0)
+    {
+        inputDeviceComboBox->setCurrentIndex(deviceIndex);
+
+        // Apply the device to the audio recorder
+        if (m_audioRecorder)
+        {
+            const QList<QAudioDevice> inputDevices = QMediaDevices::audioInputs();
+            for (const QAudioDevice &device : inputDevices)
+            {
+                if (device.id() == savedDeviceId)
+                {
+                    setAudioDevice(device);
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
 }
 
 void MainWindow::saveApiKey()
@@ -624,7 +678,19 @@ void MainWindow::onApiKeyLinkClicked()
 void MainWindow::onVolumeChanged(int value)
 {
     volumeValueLabel->setText(QString("%1%").arg(value));
-    // TODO: Apply volume setting to audio recorder
+
+    // Convert percentage (0-100) to volume (0.0-1.0)
+    qreal volume = value / 100.0;
+
+    // Apply volume setting to audio recorder
+    if (m_audioRecorder)
+    {
+        m_audioRecorder->setVolume(volume);
+    }
+
+    // Save volume setting
+    QSettings settings("Pineapple Writer", "Pineapple Writer");
+    settings.setValue("volume", value);
 }
 
 void MainWindow::onInputDeviceChanged(int index)
@@ -634,12 +700,38 @@ void MainWindow::onInputDeviceChanged(int index)
         QVariant deviceId = inputDeviceComboBox->itemData(index);
         if (deviceId.isValid())
         {
-            // TODO: Apply the selected input device to the audio recorder
-            // This would typically involve setting the device ID in the AudioRecorder
-            qDebug() << "Selected input device:" << inputDeviceComboBox->currentText()
-                     << "with ID:" << deviceId.toString();
+            // Find the device by ID
+            const QList<QAudioDevice> inputDevices = QMediaDevices::audioInputs();
+            for (const QAudioDevice &device : inputDevices)
+            {
+                if (device.id() == deviceId.toString())
+                {
+                    // Apply the selected input device to the audio recorder
+                    if (m_audioRecorder)
+                    {
+                        setAudioDevice(device);
+                    }
+
+                    qDebug() << "Selected input device:" << inputDeviceComboBox->currentText()
+                             << "with ID:" << deviceId.toString();
+
+                    // Save device selection
+                    QSettings settings("Pineapple Writer", "Pineapple Writer");
+                    settings.setValue("inputDevice", deviceId.toString());
+                    break;
+                }
+            }
         }
     }
+}
+
+void MainWindow::setAudioDevice(const QAudioDevice &device)
+{
+    m_audioRecorder->setAudioDevice(device);
+    // Update volume display to match current device volume
+    int currentVolume = m_audioRecorder->getVolume() * 100;
+    volumeSlider->setValue(currentVolume);
+    volumeValueLabel->setText(QString("%1%").arg(currentVolume));
 }
 
 void MainWindow::onModelChanged(int index)
