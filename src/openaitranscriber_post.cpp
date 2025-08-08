@@ -27,6 +27,11 @@ OpenAITranscriberPost::~OpenAITranscriberPost()
     }
 }
 
+void OpenAITranscriberPost::setSystemPrompt(const QString &systemPrompt)
+{
+    m_systemPrompt = systemPrompt;
+}
+
 void OpenAITranscriberPost::setApiKey(const QString &apiKey)
 {
     m_apiKey = apiKey;
@@ -93,6 +98,14 @@ void OpenAITranscriberPost::transcribeAudio()
     modelPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"model\""));
     modelPart.setBody(m_model.toUtf8());
     multiPart->append(modelPart);
+
+    if (!m_systemPrompt.isEmpty())
+    {
+        QHttpPart systemPromptPart;
+        systemPromptPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"prompt\""));
+        systemPromptPart.setBody(m_systemPrompt.toUtf8());
+        multiPart->append(systemPromptPart);
+    }
 
     // Create the request
     QNetworkRequest request(QUrl("https://api.openai.com/v1/audio/transcriptions"));

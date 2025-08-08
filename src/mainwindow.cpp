@@ -435,7 +435,6 @@ void MainWindow::loadSettings()
     onInputMethodChanged();
     onPttKeyChanged();
 
-    // Load model selection - default to gpt-4o-transcribe
     QString savedModel = settings.value("gptModel", "gpt-4o-transcribe").toString();
     qDebug() << "Loaded model:" << savedModel;
     int modelIndex = modelComboBox->findText(savedModel);
@@ -816,12 +815,12 @@ void MainWindow::onSystemPromptChanged()
 {
     QString systemPrompt = systemPromptEdit->toPlainText();
 
-    // TODO: Apply system prompt to transcriber when supported
-    // For now, just save the system prompt
     QSettings settings("Pineapple Writer", "Pineapple Writer");
     settings.setValue("systemPrompt", systemPrompt);
 
-    qDebug() << "System prompt changed:" << systemPrompt;
+    m_openAITranscriber->setSystemPrompt(systemPrompt);
+
+    // qDebug() << "System prompt changed:" << systemPrompt;
 }
 
 void MainWindow::updateInputMethodUI()

@@ -24,6 +24,7 @@ public:
     void setModel(const QString &model = "gpt-4o-transcribe");
     void transcribeAudio();
     bool isTranscribing() const;
+    void setSystemPrompt(const QString &systemPrompt);
 
 signals:
     void transcriptionReceived(const QString &text);
@@ -43,6 +44,7 @@ private:
     QString m_model;
     bool m_isTranscribing;
     QMutex m_mutex;
+    QString m_systemPrompt;
 
     QByteArray createMultipartData(const QByteArray &audioData);
     QString generateBoundary();
