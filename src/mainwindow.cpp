@@ -11,7 +11,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_globalHotkeyManager(new GlobalHotkeyManager(this)), m_audioRecorder(new AudioRecorder(this)),
-      m_keyboardSimulator(new KeyboardSimulator()), m_openAITranscriber(new OpenAITranscriberPost(this))
+      m_keyboardSimulator(new KeyboardSimulator()), m_openAITranscriber(new OpenAITranscriber(this))
 {
     setupUI();
     setupConnections();
@@ -278,11 +278,11 @@ void MainWindow::setupConnections()
     connect(m_audioRecorder, &AudioRecorder::transcriptionError,
             this, &MainWindow::onTranscriptionError);
 
-    connect(m_openAITranscriber, &OpenAITranscriberPost::transcriptionReceived,
+    connect(m_openAITranscriber, &OpenAITranscriber::transcriptionReceived,
             this, &MainWindow::onTranscriptionReceived);
-    connect(m_openAITranscriber, &OpenAITranscriberPost::transcriptionError,
+    connect(m_openAITranscriber, &OpenAITranscriber::transcriptionError,
             this, &MainWindow::onTranscriptionError);
-    connect(m_openAITranscriber, &OpenAITranscriberPost::transcriptionFinished,
+    connect(m_openAITranscriber, &OpenAITranscriber::transcriptionFinished,
             this, &MainWindow::onTranscriptionFinished);
 
     // Connect API key link

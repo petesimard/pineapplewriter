@@ -1,4 +1,4 @@
-#include "openaitranscriber_post.h"
+#include "openaitranscriber.h"
 #include "audiobuffer.h"
 #include <QDebug>
 #include <QJsonDocument>
@@ -11,14 +11,14 @@
 #include <QRandomGenerator>
 #include <QCryptographicHash>
 
-OpenAITranscriberPost::OpenAITranscriberPost(QObject *parent)
+OpenAITranscriber::OpenAITranscriber(QObject *parent)
     : QObject(parent), m_networkManager(nullptr), m_currentReply(nullptr), m_audioBuffer(nullptr), m_isTranscribing(false)
 {
     m_networkManager = new QNetworkAccessManager(this);
     m_model = "gpt-4o-transcribe";
 }
 
-OpenAITranscriberPost::~OpenAITranscriberPost()
+OpenAITranscriber::~OpenAITranscriber()
 {
     if (m_currentReply)
     {
@@ -27,27 +27,27 @@ OpenAITranscriberPost::~OpenAITranscriberPost()
     }
 }
 
-void OpenAITranscriberPost::setSystemPrompt(const QString &systemPrompt)
+void OpenAITranscriber::setSystemPrompt(const QString &systemPrompt)
 {
     m_systemPrompt = systemPrompt;
 }
 
-void OpenAITranscriberPost::setApiKey(const QString &apiKey)
+void OpenAITranscriber::setApiKey(const QString &apiKey)
 {
     m_apiKey = apiKey;
 }
 
-void OpenAITranscriberPost::setAudioBuffer(AudioBuffer *buffer)
+void OpenAITranscriber::setAudioBuffer(AudioBuffer *buffer)
 {
     m_audioBuffer = buffer;
 }
 
-void OpenAITranscriberPost::setModel(const QString &model)
+void OpenAITranscriber::setModel(const QString &model)
 {
     m_model = model;
 }
 
-void OpenAITranscriberPost::transcribeAudio()
+void OpenAITranscriber::transcribeAudio()
 {
     QMutexLocker locker(&m_mutex);
 
@@ -116,19 +116,19 @@ void OpenAITranscriberPost::transcribeAudio()
     multiPart->setParent(m_currentReply); // Delete the multiPart with the reply
 
     // Connect signals
-    connect(m_currentReply, &QNetworkReply::finished, this, &OpenAITranscriberPost::onNetworkReplyFinished);
+    connect(m_currentReply, &QNetworkReply::finished, this, &OpenAITranscriber::onNetworkReplyFinished);
     connect(m_currentReply, &QNetworkReply::errorOccurred,
-            this, &OpenAITranscriberPost::onNetworkReplyError);
+            this, &OpenAITranscriber::onNetworkReplyError);
 
     qDebug() << "Sending transcription request to OpenAI API with model:" << m_model << "file size:" << audioData.size();
 }
 
-bool OpenAITranscriberPost::isTranscribing() const
+bool OpenAITranscriber::isTranscribing() const
 {
     return m_isTranscribing;
 }
 
-void OpenAITranscriberPost::onNetworkReplyFinished()
+void OpenAITranscriber::onNetworkReplyFinished()
 {
     QMutexLocker locker(&m_mutex);
 
@@ -190,13 +190,13 @@ void OpenAITranscriberPost::onNetworkReplyFinished()
     emit transcriptionFinished();
 }
 
-void OpenAITranscriberPost::onNetworkReplyError(QNetworkReply::NetworkError error)
+void OpenAITranscriber::onNetworkReplyError(QNetworkReply::NetworkError error)
 {
     qWarning() << "Network reply error:" << error;
     // Error handling is done in onNetworkReplyFinished
 }
 
-QByteArray OpenAITranscriberPost::createAudioFile(const QByteArray &audioData)
+QByteArray OpenAITranscriber::createAudioFile(const QByteArray &audioData)
 {
     // Create a simple WAV file header for PCM data
     // Assuming 16-bit PCM, 16kHz sample rate, mono channel

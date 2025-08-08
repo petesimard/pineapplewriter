@@ -30,7 +30,7 @@
 #include "globalhotkeymanager.h"
 #include "audiorecorder.h"
 #include "keyboardsimulator.h"
-#include "openaitranscriber_post.h"
+#include "openaitranscriber.h"
 
 class MainWindow : public QMainWindow
 {
@@ -154,7 +154,7 @@ private:
     AudioRecorder *m_audioRecorder;
 
     // OpenAI transcriber
-    OpenAITranscriberPost *m_openAITranscriber;
+    OpenAITranscriber *m_openAITranscriber;
 
     // Keyboard simulator
     KeyboardSimulator *m_keyboardSimulator;

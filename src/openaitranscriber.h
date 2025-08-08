@@ -1,5 +1,5 @@
-#ifndef OPENAITRANSCRIBERPOST_H
-#define OPENAITRANSCRIBERPOST_H
+#ifndef OPENAITRANSCRIBER_H
+#define OPENAITRANSCRIBER_H
 
 #include <QObject>
 #include <QNetworkAccessManager>
@@ -11,13 +11,13 @@
 
 class AudioBuffer;
 
-class OpenAITranscriberPost : public QObject
+class OpenAITranscriber : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit OpenAITranscriberPost(QObject *parent = nullptr);
-    ~OpenAITranscriberPost();
+    explicit OpenAITranscriber(QObject *parent = nullptr);
+    ~OpenAITranscriber();
 
     void setApiKey(const QString &apiKey);
     void setAudioBuffer(AudioBuffer *buffer);
@@ -51,4 +51,4 @@ private:
     QByteArray createAudioFile(const QByteArray &audioData);
 };
 
-#endif // OPENAITRANSCRIBERPOST_H
+#endif // OPENAITRANSCRIBER_H
