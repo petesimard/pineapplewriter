@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Build script for SystemTrayApp
+# Build script for PineappleWriter
 
 set -e  # Exit on any error
 
-echo "Building SystemTrayApp..."
+echo "Building PineappleWriter..."
 
 # Check if we're in the right directory
 if [ ! -f "CMakeLists.txt" ]; then

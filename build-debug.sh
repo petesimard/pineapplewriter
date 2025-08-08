@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Debug build script for SystemTrayApp
+# Debug build script for PineappleWriter
 
 set -e  # Exit on any error
 
-echo "Building SystemTrayApp in Debug mode..."
+echo "Building PineappleWriter in Debug mode..."
 
 # Check if we're in the right directory
 if [ ! -f "CMakeLists.txt" ]; then

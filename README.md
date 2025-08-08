@@ -1,25 +1,29 @@
-# System Tray Application
+# Pineapple Writer
 
-A Qt6-based system tray application that provides a user interface for configuring ElevenLabs API keys and custom hotkeys.
+A Qt6-based system tray application that enables real time Speech to Text (STT) using OpenAI.
 
 ## Features
 
 - **System Tray Integration**: Runs in the system tray with right-click menu (Open/Quit)
-- **Recording Status Indicator**: Green circle overlay on system tray icon when recording is active
-- **ElevenLabs API Configuration**: Secure text input field for storing API keys
+- **OpenAI Integration**: Provide your own API key to enable transcription
 - **Custom Hotkey Support**: Click-to-set hotkey functionality with visual feedback
+- **Multiple Input Methods**: Use push to talk or enable a hotkey to toggle on/off
+- **Customizable**: Change models, hotkeys, prompts, input methods
 - **Settings Persistence**: Automatically saves and loads user preferences
-- **Linux Mint Compatible**: Designed to work on default Linux Mint installations
+
+## Usage
+
+Right click the pineapple icon in the systemm tray and select Open
+Enter your OpenAI API Key
+The default input method is Push-To-Talk bound to the right alt key
+
 
 ## Prerequisites
-
-### For Linux Mint
 
 Install the required dependencies:
 
 ```bash
-sudo apt update
-sudo apt install build-essential cmake qt6-base-dev qt6-base-dev-tools
+apt-get install xdotool
 ```
 
 ## Building the Application
@@ -47,7 +51,7 @@ sudo apt install build-essential cmake qt6-base-dev qt6-base-dev-tools
 
 5. **Run the application**:
    ```bash
-   ./bin/SystemTrayApp
+   ./bin/PineappleWriter
    ```
 
 ## Installation
@@ -59,7 +63,7 @@ To install the application system-wide:
 sudo make install
 ```
 
-The application will be installed to `/usr/local/bin/SystemTrayApp`.
+The application will be installed to `/usr/local/bin/PineappleWriter`.
 
 ## Usage
 
@@ -82,15 +86,13 @@ The application will be installed to `/usr/local/bin/SystemTrayApp`.
 ## Project Structure
 
 ```
-SystemTrayApp/
+PineappleWriter/
 ├── CMakeLists.txt          # Main build configuration
 ├── README.md              # This file
 ├── src/
 │   ├── main.cpp           # Application entry point
 │   ├── mainwindow.h       # Main window header
 │   ├── mainwindow.cpp     # Main window implementation
-│   ├── hotkeywidget.h     # Hotkey widget header
-│   └── hotkeywidget.cpp   # Hotkey widget implementation
 └── resources/
     └── resources.qrc      # Qt resource file
 ```
@@ -100,35 +102,8 @@ SystemTrayApp/
 ### Key Components
 
 - **MainWindow**: Main application window with UI elements
-- **HotkeyWidget**: Custom widget for capturing key combinations
 - **System Tray**: Handles tray icon and context menu
 - **Settings**: Automatic persistence using QSettings
-
-### Building for Development
-
-For development with debugging:
-
-```bash
-mkdir build-debug
-cd build-debug
-cmake -DCMAKE_BUILD_TYPE=Debug ..
-make
-```
-
-### VS Code Debugging
-
-The project includes VS Code debug configuration:
-
-1. **Press F5** to build and debug the application
-2. **Ctrl+Shift+P** → "Tasks: Run Task" → "build-debug" for manual debug build
-3. **Ctrl+Shift+P** → "Tasks: Run Task" → "build-release" for release build
-4. **Ctrl+Shift+P** → "Tasks: Run Task" → "clean" to clean all build directories
-
-The debug configuration will:
-- Build the project in debug mode with symbols
-- Launch the debugger (GDB)
-- Allow setting breakpoints and stepping through code
-- Show variable values and call stack
 
 ## Troubleshooting
 
@@ -136,7 +111,6 @@ The debug configuration will:
 
 1. **Qt6 not found**: Ensure you have Qt6 development packages installed
 2. **System tray not available**: Some desktop environments may not support system tray
-3. **Hotkey not working**: The hotkey detection works within the application only
 
 ### Dependencies
 
@@ -145,5 +119,15 @@ The debug configuration will:
 - **C++17**: Compiler with C++17 support
 
 ## License
+This project is licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-This project is provided as-is for educational and development purposes. 
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+

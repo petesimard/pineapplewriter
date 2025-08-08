@@ -39,7 +39,7 @@ qrc_*.cpp
 *.exe
 *.out
 *.app
-SystemTrayApp
+PineappleWriter
 
 # IDE files
 .vscode/

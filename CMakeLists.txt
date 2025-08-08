@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(SystemTrayApp VERSION 1.0.0 LANGUAGES CXX)
+project(PineappleWriter VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -20,7 +20,7 @@ find_package(QHotkey REQUIRED)
 
 
 # Create executable
-add_executable(SystemTrayApp
+add_executable(PineappleWriter
     src/main.cpp
     src/mainwindow.cpp
     src/mainwindow.h
@@ -50,7 +50,7 @@ add_executable(SystemTrayApp
 )
 
 # Link Qt6 libraries
-target_link_libraries(SystemTrayApp
+target_link_libraries(PineappleWriter
     Qt6::Core
     Qt6::Widgets
     Qt6::Gui
@@ -59,14 +59,14 @@ target_link_libraries(SystemTrayApp
     Qt6::WebSockets
     ${X11_LIBRARIES}
 )
-target_link_libraries(SystemTrayApp qhotkey)
+target_link_libraries(PineappleWriter qhotkey)
 
 # Set output directory
-set_target_properties(SystemTrayApp PROPERTIES
+set_target_properties(PineappleWriter PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
 
 # Install target
-install(TARGETS SystemTrayApp
+install(TARGETS PineappleWriter
     RUNTIME DESTINATION bin
 ) 
