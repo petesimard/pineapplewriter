@@ -73,37 +73,11 @@ The application will be installed to `/usr/local/bin/PineappleWriter`.
    - Right-click for menu options (Open/Quit)
 3. **Recording Status**: 
    - A green circle appears on the system tray icon when recording is active
-   - The tooltip changes to indicate recording status
-4. **Configure ElevenLabs API**:
-   - Enter your ElevenLabs API key in the text field
+   - A yellow circle appears when a transcription is being processed
+4. **Configure OpenAI API**:
+   - Enter your OpenAI API key in the text field
    - The key is automatically saved and hidden for security
-5. **Set Custom Hotkey**:
-   - Click the "Click to set hotkey" button
-   - Press your desired key combination (e.g., Ctrl+Shift+A)
-   - The hotkey will be captured and displayed
-6. **Close the window**: The app continues running in the system tray
-
-## Project Structure
-
-```
-PineappleWriter/
-├── CMakeLists.txt          # Main build configuration
-├── README.md              # This file
-├── src/
-│   ├── main.cpp           # Application entry point
-│   ├── mainwindow.h       # Main window header
-│   ├── mainwindow.cpp     # Main window implementation
-└── resources/
-    └── resources.qrc      # Qt resource file
-```
-
-## Development
-
-### Key Components
-
-- **MainWindow**: Main application window with UI elements
-- **System Tray**: Handles tray icon and context menu
-- **Settings**: Automatic persistence using QSettings
+5. **Close the window**: The app continues running in the system tray. To close right click on the system tray icon and select close.
 
 ## Troubleshooting
 
@@ -119,15 +93,24 @@ PineappleWriter/
 - **C++17**: Compiler with C++17 support
 
 ## License
-This project is licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+MIT License
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Copyright (c) 2025 Peter Simard
 
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN
