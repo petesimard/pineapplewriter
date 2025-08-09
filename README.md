@@ -28,26 +28,9 @@ apt-get install xdotool
 
 ## Building the Application
 
-1. **Clone or navigate to the project directory**:
-   ```bash
-   cd /path/to/your/project
-   ```
-
-2. **Create a build directory**:
-   ```bash
-   mkdir build
-   cd build
-   ```
-
-3. **Configure with CMake**:
-   ```bash
-   cmake ..
-   ```
-
-4. **Build the application**:
-   ```bash
-   make -j$(nproc)
-   ```
+```
+./build.sh
+```
 
 5. **Run the application**:
    ```bash
