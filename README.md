@@ -32,10 +32,10 @@ apt-get install xdotool
 ./build.sh
 ```
 
-5. **Run the application**:
-   ```bash
-   ./bin/PineappleWriter
-   ```
+**Run the application**:
+```bash
+./bin/PineappleWriter
+```
 
 ## Installation
 
