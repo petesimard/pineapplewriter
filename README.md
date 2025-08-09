@@ -54,13 +54,15 @@ The application will be installed to `/usr/local/bin/PineappleWriter`.
 2. **Access the UI**: 
    - Left-click the tray icon to open the main window
    - Right-click for menu options (Open/Quit)
-3. **Recording Status**: 
+3. **Start Recording**:
+   - The default hotkey is right alt. Hold right alt down while speaking and release to finish.
+4. **Recording Status**: 
    - A green circle appears on the system tray icon when recording is active
    - A yellow circle appears when a transcription is being processed
-4. **Configure OpenAI API**:
+5. **Configure OpenAI API**:
    - Enter your OpenAI API key in the text field
    - The key is automatically saved and hidden for security
-5. **Close the window**: The app continues running in the system tray. To close right click on the system tray icon and select close.
+6. **Close the window**: The app continues running in the system tray. To close right click on the system tray icon and select close.
 
 ## Troubleshooting
 
