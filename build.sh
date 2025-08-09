@@ -23,10 +23,12 @@ cd build
 
 # Configure with CMake
 echo "Configuring with CMake..."
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr ..
 
 # Build the project
 echo "Building the project..."
 make -j$(nproc)
+
+make install DESTDIR="$PWD/pkgdir"
 
 echo "Build completed successfully!"

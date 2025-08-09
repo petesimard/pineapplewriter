@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.petesimard.pineapplewriter</id>
+  <name>Pineapple Writer</name>
+  <summary>System tray speech-to-text using OpenAI</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <description>
+    <p>Pineapple Writer is a Qt6-based system tray application that enables real-time Speech to Text (STT) using OpenAI.</p>
+  </description>
+  <launchable type="desktop-id">com.petesimard.pineapplewriter.desktop</launchable>
+  <categories>
+    <category>Utility</category>
+    <category>AudioVideo</category>
+  </categories>
+    <url type="homepage">https://github.com/petesimard/PineappleWriter</url>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://i.ibb.co/7tLBF9td/Screenshot-from-2025-08-09-15-25-22.png</image>
+    </screenshot>
+    <screenshot type="default">
+      <image>https://i.ibb.co/3yKWy3dZ/Screenshot-from-2025-08-09-15-25-37.png</image>
+    </screenshot>
+    <screenshot type="default">
+      <image>https://i.ibb.co/Fb18wLpn/Screenshot-from-2025-08-09-15-25-41.png</image>
+    </screenshot>
+  </screenshots>
+  <provides>
+    <binary>PineappleWriter</binary>
+  </provides>
+  <branding>
+    <color type="primary">#f4c542</color>
+  </branding>
+  <releases>
+    <release version="1.0.0" date="2025-08-09"/> 
+  </releases>
+</component>
+

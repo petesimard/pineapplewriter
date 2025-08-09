@@ -59,3 +59,6 @@ Thumbs.db
 
 # Application settings (optional - remove if you want to track settings)
 *.conf 
+
+.flatpak-builder/
+builddir/

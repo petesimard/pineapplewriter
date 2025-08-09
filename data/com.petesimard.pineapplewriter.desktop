@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=Pineapple Writer
+GenericName=Speech to Text
+Comment=System tray speech-to-text using OpenAI
+Exec=PineappleWriter
+Icon=com.petesimard.pineapplewriter
+Terminal=false
+Type=Application
+Categories=AudioVideo;Development;
+Keywords=Speech;Transcription;Audio;Voice;OpenAI;Microphone;
+StartupNotify=true
+StartupWMClass=PineappleWriter
+

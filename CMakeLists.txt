@@ -15,7 +15,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-# Try to find QHotkey, but make it optional
 find_package(QHotkey REQUIRED)
 
 
@@ -70,3 +69,22 @@ set_target_properties(PineappleWriter PROPERTIES
 install(TARGETS PineappleWriter
     RUNTIME DESTINATION bin
 ) 
+
+
+# Install app icon under hicolor theme with the application id as the icon name
+install(FILES
+    data/icons/com.petesimard.pineapplewriter.png
+    DESTINATION share/icons/hicolor/256x256/apps
+    RENAME com.petesimard.pineapplewriter.png
+)
+
+# Install desktop integration files and icon for packaging (e.g., Flatpak)
+install(FILES
+    data/com.petesimard.pineapplewriter.desktop
+    DESTINATION share/applications
+)
+
+install(FILES
+    data/com.petesimard.pineapplewriter.metainfo.xml
+    DESTINATION share/metainfo
+)
