@@ -73,18 +73,18 @@ install(TARGETS PineappleWriter
 
 # Install app icon under hicolor theme with the application id as the icon name
 install(FILES
-    data/icons/com.petesimard.pineapplewriter.png
+    data/icons/io.github.petesimard.pineapplewriter.png
     DESTINATION share/icons/hicolor/256x256/apps
-    RENAME com.petesimard.pineapplewriter.png
+    RENAME io.github.petesimard.pineapplewriter.png
 )
 
 # Install desktop integration files and icon for packaging (e.g., Flatpak)
 install(FILES
-    data/com.petesimard.pineapplewriter.desktop
+    data/io.github.petesimard.pineapplewriter.desktop
     DESTINATION share/applications
 )
 
 install(FILES
-    data/com.petesimard.pineapplewriter.metainfo.xml
+    data/io.github.petesimard.pineapplewriter.metainfo.xml
     DESTINATION share/metainfo
 )

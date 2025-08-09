@@ -1,1 +1,1 @@
-sudo flatpak-builder --install --force-clean /home/pete/work/stt/builddir /home/pete/work/stt/data/com.petesimard.pineapplewriter.yaml
+sudo flatpak-builder --install --force-clean /home/pete/work/stt/builddir /home/pete/work/stt/data/io.github.petesimard.pineapplewriter.yaml

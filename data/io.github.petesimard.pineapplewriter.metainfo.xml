@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>com.petesimard.pineapplewriter</id>
+  <id>io.github.petesimard.pineapplewriter</id>
   <name>Pineapple Writer</name>
   <summary>System tray speech-to-text using OpenAI</summary>
   <metadata_license>CC0-1.0</metadata_license>
@@ -8,7 +8,7 @@
   <description>
     <p>Pineapple Writer is a Qt6-based system tray application that enables real-time Speech to Text (STT) using OpenAI.</p>
   </description>
-  <launchable type="desktop-id">com.petesimard.pineapplewriter.desktop</launchable>
+  <launchable type="desktop-id">io.github.petesimard.pineapplewriter.desktop</launchable>
   <categories>
     <category>Utility</category>
     <category>AudioVideo</category>
