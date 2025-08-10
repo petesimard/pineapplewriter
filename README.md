@@ -1,6 +1,6 @@
 # Pineapple Writer
 
-![Pineapple Writer Screenshot](https://i.ibb.co/7tLBF9td/Screenshot-from-2025-08-09-15-25-22.png)
+![Logo](https://github.com/petesimard/pineapplewriter/blob/main/data/icons/io.github.petesimard.pineapplewriter.png)
 
 
 A Qt6-based system tray application that enables real time Speech to Text (STT) using OpenAI. Tested on Linux Mint but should work on most Linux distros. No wayland support.
@@ -31,25 +31,11 @@ apt-get install xdotool
 
 ## Building the Application
 
+A helper builder shell script is included to install the requirements and make & install
+
 ```
 ./build.sh
 ```
-
-**Run the application**:
-```bash
-./bin/PineappleWriter
-```
-
-## Installation
-
-To install the application system-wide:
-
-```bash
-# From the build directory
-sudo make install
-```
-
-The application will be installed to `/usr/local/bin/PineappleWriter`.
 
 ## Usage
 
