@@ -15,7 +15,14 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(QHotkey REQUIRED)
+# Fetch QHotkey from GitHub
+include(FetchContent)
+FetchContent_Declare(
+    qhotkey
+    GIT_REPOSITORY https://github.com/Skycoder42/QHotkey.git
+    GIT_TAG master
+)
+FetchContent_MakeAvailable(qhotkey)
 
 
 # Create executable

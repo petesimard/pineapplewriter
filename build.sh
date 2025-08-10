@@ -12,6 +12,12 @@ if [ ! -f "CMakeLists.txt" ]; then
     exit 1
 fi
 
+# Install dependencies
+sudo apt install qt6-base-dev
+sudo apt install qt6-multimedia-dev
+sudo apt install libxtst-dev
+
+
 # Create build directory if it doesn't exist
 if [ ! -d "build" ]; then
     echo "Creating build directory..."
