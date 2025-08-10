@@ -1,5 +1,8 @@
 # Pineapple Writer
 
+![Pineapple Writer Screenshot](https://i.ibb.co/7tLBF9td/Screenshot-from-2025-08-09-15-25-22.png)
+
+
 A Qt6-based system tray application that enables real time Speech to Text (STT) using OpenAI. Tested on Linux Mint but should work on most Linux distros. No wayland support.
 
 ## Features
