@@ -13,6 +13,7 @@ if [ ! -f "CMakeLists.txt" ]; then
 fi
 
 # Install dependencies
+sudo apt install xdotool
 sudo apt install qt6-base-dev
 sudo apt install qt6-multimedia-dev
 sudo apt install libxtst-dev

@@ -26,7 +26,11 @@ The default input method is Push-To-Talk bound to the right alt key
 Install the required dependencies:
 
 ```bash
-apt-get install xdotool
+sudo apt install xdotool
+sudo apt install qt6-base-dev
+sudo apt install qt6-multimedia-dev
+sudo apt install libxtst-dev
+
 ```
 
 ## Building the Application
