@@ -13,11 +13,7 @@ if [ ! -f "CMakeLists.txt" ]; then
 fi
 
 # Install dependencies
-sudo apt install xdotool
-sudo apt install qt6-base-dev
-sudo apt install qt6-multimedia-dev
-sudo apt install libxtst-dev
-
+sudo apt install -y xdotool qt6-base-dev qt6-multimedia-dev libxtst-dev libqt6websockets6-dev
 
 # Create build directory if it doesn't exist
 if [ ! -d "build" ]; then
@@ -38,4 +34,4 @@ make -j$(nproc)
 
 make install DESTDIR="$PWD/pkgdir"
 
-echo "Build completed successfully!"
+echo "Build completed successfully! Run ./build/bin/PineappleWriter to launch."

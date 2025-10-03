@@ -21,18 +21,6 @@ Enter your OpenAI API Key
 The default input method is Push-To-Talk bound to the right alt key
 
 
-## Prerequisites
-
-Install the required dependencies:
-
-```bash
-sudo apt install xdotool
-sudo apt install qt6-base-dev
-sudo apt install qt6-multimedia-dev
-sudo apt install libxtst-dev
-
-```
-
 ## Building the Application
 
 A helper builder shell script is included to install the requirements and make & install
@@ -43,7 +31,9 @@ A helper builder shell script is included to install the requirements and make &
 
 ## Usage
 
-1. **Launch the application**: The app will start and appear in your system tray
+1. **Launch the application**:
+   - ./build/bin/PineappleWriter
+   - The app will start and appear in your system tray
 2. **Access the UI**: 
    - Left-click the tray icon to open the main window
    - Right-click for menu options (Open/Quit)
